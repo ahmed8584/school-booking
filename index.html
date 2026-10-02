@@ -1,0 +1,2901 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>حجز قاعة المصادر التعليمية</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    * { box-sizing: border-box; }
+
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --primary-light: #dbeafe;
+      --danger: #dc2626;
+      --danger-light: #fee2e2;
+      --success: #16a34a;
+      --success-light: #dcfce7;
+      --warning: #d97706;
+      --warning-light: #fef3c7;
+      --purple: #7c3aed;
+      --purple-light: #ede9fe;
+      --whatsapp: #25d366;
+      --whatsapp-dark: #128c7e;
+      --gray-50: #f9fafb;
+      --gray-100: #f3f4f6;
+      --gray-200: #e5e7eb;
+      --gray-300: #d1d5db;
+      --gray-500: #6b7280;
+      --gray-700: #374151;
+      --gray-900: #111827;
+      --bg-gradient: linear-gradient(135deg, #eef4ff 0%, #f8fbff 50%, #eef7f5 100%);
+      --card-bg: #fff;
+      --radius: 12px;
+      --shadow-sm: 0 1px 2px rgba(0,0,0,.05);
+      --shadow: 0 4px 12px rgba(0,0,0,.08);
+      --shadow-lg: 0 10px 30px rgba(0,0,0,.12);
+    }
+
+    body.dark-mode {
+      --gray-50: #1e293b;
+      --gray-100: #334155;
+      --gray-200: #475569;
+      --gray-300: #64748b;
+      --gray-500: #94a3b8;
+      --gray-700: #cbd5e1;
+      --gray-900: #f1f5f9;
+      --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f2027 100%);
+      --card-bg: #1e293b;
+      --primary-light: #1e3a8a;
+      --success-light: #14532d;
+      --danger-light: #7f1d1d;
+      --warning-light: #78350f;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Tajawal", "Arial", sans-serif;
+      background: var(--bg-gradient);
+      color: var(--gray-900);
+      min-height: 100vh;
+      line-height: 1.6;
+      transition: background .3s, color .3s;
+    }
+
+    button, input, select, textarea { font-family: inherit; font-size: 1rem; }
+    button { cursor: pointer; border: none; }
+
+    /* ============ Toast ============ */
+    .toast-container {
+      position: fixed;
+      top: 1rem;
+      left: 1rem;
+      z-index: 10000;
+      display: flex;
+      flex-direction: column;
+      gap: .5rem;
+      max-width: 380px;
+      pointer-events: none;
+    }
+
+    .toast {
+      background: var(--card-bg);
+      color: var(--gray-900);
+      padding: .9rem 1.1rem;
+      border-radius: 12px;
+      box-shadow: var(--shadow-lg);
+      border-right: 4px solid var(--primary);
+      display: flex;
+      align-items: center;
+      gap: .7rem;
+      font-size: .92rem;
+      font-weight: 500;
+      animation: toastIn .3s ease;
+      pointer-events: auto;
+    }
+
+    .toast.success { border-right-color: var(--success); }
+    .toast.error   { border-right-color: var(--danger); }
+    .toast.warning { border-right-color: var(--warning); }
+    .toast.info    { border-right-color: var(--primary); }
+    .toast .icon { font-size: 1.2rem; }
+
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateX(-30px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
+    .toast.fade-out { animation: toastOut .3s ease forwards; }
+
+    @keyframes toastOut {
+      to { opacity: 0; transform: translateX(-30px); }
+    }
+
+    /* ============ تسجيل الدخول ============ */
+    .login-screen {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 1.5rem;
+      position: relative;
+    }
+
+    .theme-toggle-login {
+      position: absolute;
+      top: 1.5rem;
+      left: 1.5rem;
+      background: var(--card-bg);
+      border-radius: 50%;
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      box-shadow: var(--shadow);
+      transition: transform .2s;
+    }
+    .theme-toggle-login:hover { transform: scale(1.1); }
+
+    .login-card {
+      background: var(--card-bg);
+      border-radius: 20px;
+      box-shadow: var(--shadow-lg);
+      width: 100%;
+      max-width: 440px;
+      padding: 2.5rem 2rem;
+      text-align: center;
+    }
+
+    .login-logo {
+      width: 80px; height: 80px;
+      margin: 0 auto 1rem;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--purple));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2.2rem; color: #fff;
+      box-shadow: 0 8px 20px rgba(37,99,235,.35);
+    }
+
+    .login-title { font-size: 1.5rem; font-weight: 800; margin: 0 0 .35rem; }
+    .login-subtitle { color: var(--gray-500); font-size: .95rem; margin: 0 0 2rem; }
+
+    .login-tabs {
+      display: flex; gap: .5rem;
+      background: var(--gray-100);
+      border-radius: var(--radius);
+      padding: .35rem;
+      margin-bottom: 1.75rem;
+    }
+
+    .login-tab {
+      flex: 1;
+      padding: .7rem;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--gray-700);
+      font-weight: 500;
+      transition: all .2s;
+    }
+
+    .login-tab.active {
+      background: var(--card-bg);
+      color: var(--primary);
+      box-shadow: var(--shadow-sm);
+      font-weight: 700;
+    }
+
+    .form-group { text-align: right; margin-bottom: 1rem; }
+
+    .form-group label {
+      display: block;
+      font-weight: 500;
+      margin-bottom: .4rem;
+      color: var(--gray-700);
+      font-size: .9rem;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: .8rem 1rem;
+      border: 1.5px solid var(--gray-200);
+      border-radius: 10px;
+      transition: border-color .2s, box-shadow .2s;
+      background: var(--card-bg);
+      color: var(--gray-900);
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37,99,235,.15);
+    }
+
+    .form-group input:disabled,
+    .form-group select:disabled {
+      background: var(--gray-100);
+      color: var(--gray-500);
+      cursor: not-allowed;
+    }
+
+    .form-hint {
+      display: block;
+      margin-top: .35rem;
+      font-size: .78rem;
+      color: var(--gray-500);
+    }
+
+    .btn {
+      width: 100%;
+      padding: .9rem 1.25rem;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 1rem;
+      transition: all .2s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: .5rem;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(37,99,235,.3);
+    }
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(37,99,235,.4);
+    }
+    .btn-primary:disabled { opacity: .6; cursor: not-allowed; }
+
+    .btn-secondary { background: var(--gray-100); color: var(--gray-700); }
+    .btn-secondary:hover { background: var(--gray-200); }
+
+    .btn-danger { background: var(--danger); color: #fff; }
+    .btn-danger:hover { background: #b91c1c; }
+
+    .btn-success { background: var(--success); color: #fff; }
+    .btn-success:hover { background: #15803d; }
+
+    .btn-purple {
+      background: linear-gradient(135deg, var(--purple), #6d28d9);
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(124,58,237,.3);
+    }
+    .btn-purple:hover { transform: translateY(-1px); }
+
+    .btn-whatsapp {
+      background: linear-gradient(135deg, var(--whatsapp), var(--whatsapp-dark));
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(37,211,102,.3);
+    }
+    .btn-whatsapp:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(37,211,102,.4);
+    }
+
+    .btn-sm { padding: .5rem .9rem; font-size: .85rem; width: auto; }
+
+    .alert {
+      padding: .8rem 1rem;
+      border-radius: 10px;
+      margin-bottom: 1rem;
+      font-size: .9rem;
+      display: none;
+      text-align: right;
+    }
+    .alert.show { display: block; }
+    .alert-error   { background: var(--danger-light);  color: #991b1b; }
+    .alert-success { background: var(--success-light); color: #166534; }
+    .alert-warning { background: var(--warning-light); color: #92400e; }
+
+    /* ============ التطبيق ============ */
+    .app { display: none; min-height: 100vh; }
+    .app.show { display: block; }
+
+    .app-header {
+      background: var(--card-bg);
+      box-shadow: var(--shadow-sm);
+      padding: 1rem 1.5rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .header-info h1 { font-size: 1.15rem; margin: 0; font-weight: 800; }
+    .header-info p  { margin: .15rem 0 0; color: var(--gray-500); font-size: .85rem; }
+
+    .header-user {
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+      flex-wrap: wrap;
+    }
+
+    .user-badge {
+      background: var(--primary-light);
+      color: var(--primary-dark);
+      padding: .4rem .9rem;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: .85rem;
+    }
+
+    .user-badge.admin {
+      background: var(--purple-light);
+      color: #5b21b6;
+    }
+
+    body.dark-mode .user-badge.admin { color: #ddd6fe; }
+
+    .theme-toggle {
+      background: var(--gray-100);
+      color: var(--gray-700);
+      border-radius: 50%;
+      width: 38px;
+      height: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      transition: transform .2s, background .2s;
+    }
+
+    .theme-toggle:hover {
+      transform: scale(1.1);
+      background: var(--gray-200);
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1.5rem;
+    }
+
+    /* ============ التبويبات ============ */
+    .main-tabs {
+      display: flex;
+      gap: .5rem;
+      background: var(--card-bg);
+      padding: .5rem;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 1.25rem;
+      overflow-x: auto;
+    }
+
+    .main-tab {
+      padding: .7rem 1.2rem;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--gray-700);
+      font-weight: 700;
+      font-size: .95rem;
+      transition: all .2s;
+      white-space: nowrap;
+    }
+
+    .main-tab.active {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: #fff;
+      box-shadow: 0 4px 10px rgba(37,99,235,.3);
+    }
+
+    .main-tab.admin.active {
+      background: linear-gradient(135deg, var(--purple), #6d28d9);
+      box-shadow: 0 4px 10px rgba(124,58,237,.3);
+    }
+
+    /* ============ لوحة الإدارة ============ */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .stat-card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      box-shadow: var(--shadow-sm);
+      border-right: 4px solid var(--primary);
+      transition: transform .2s, box-shadow .2s;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow);
+    }
+
+    .stat-card.purple { border-right-color: var(--purple); }
+    .stat-card.green  { border-right-color: var(--success); }
+    .stat-card.orange { border-right-color: var(--warning); }
+
+    .stat-label {
+      font-size: .8rem;
+      color: var(--gray-500);
+      margin-bottom: .3rem;
+      font-weight: 500;
+    }
+
+    .stat-value {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: var(--gray-900);
+      line-height: 1.1;
+    }
+
+    .admin-section {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 1.5rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .admin-section h3 {
+      margin: 0 0 1rem;
+      font-size: 1.05rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+    }
+
+    .top-list {
+      display: flex;
+      flex-direction: column;
+      gap: .5rem;
+    }
+
+    .top-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: .6rem .9rem;
+      background: var(--gray-50);
+      border-radius: 8px;
+      font-size: .9rem;
+    }
+
+    .top-item .name { font-weight: 700; }
+    .top-item .count {
+      background: var(--primary-light);
+      color: var(--primary-dark);
+      padding: .2rem .7rem;
+      border-radius: 999px;
+      font-size: .8rem;
+      font-weight: 800;
+    }
+
+    .two-cols {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+    }
+
+    @media (max-width: 700px) {
+      .two-cols { grid-template-columns: 1fr; }
+    }
+
+    /* ============ الجدول ============ */
+    .toolbar {
+      display: flex;
+      gap: .75rem;
+      align-items: center;
+      flex-wrap: wrap;
+      background: var(--card-bg);
+      padding: 1rem;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 1.25rem;
+    }
+
+    .toolbar .week-info {
+      font-weight: 700;
+      color: var(--gray-700);
+      margin-inline-end: auto;
+      font-size: .95rem;
+    }
+
+    .schedule-wrapper {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .schedule-scroll { overflow-x: auto; }
+
+    table.schedule {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 900px;
+    }
+
+    table.schedule th,
+    table.schedule td {
+      border: 1px solid var(--gray-200);
+      padding: .65rem;
+      text-align: center;
+      vertical-align: middle;
+    }
+
+    table.schedule thead th {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: #fff;
+      font-weight: 700;
+      padding: .9rem .5rem;
+      font-size: .95rem;
+    }
+
+    table.schedule thead th:first-child {
+      background: var(--gray-700);
+      color: #fff;
+      width: 90px;
+    }
+
+    table.schedule tbody th {
+      background: var(--gray-50);
+      font-weight: 700;
+      color: var(--gray-700);
+      font-size: .9rem;
+      white-space: nowrap;
+    }
+
+    .cell {
+      min-height: 70px;
+      cursor: pointer;
+      transition: all .15s;
+      border-radius: 8px;
+      padding: .4rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: .2rem;
+    }
+
+    .cell:hover { background: var(--primary-light); }
+    .cell.booked { background: var(--primary-light); }
+    .cell.mine   { background: var(--success-light); border: 1.5px solid var(--success); }
+
+    .cell-empty {
+      color: var(--gray-300);
+      font-size: 1.4rem;
+      font-weight: 300;
+    }
+
+    .cell-teacher {
+      font-weight: 700;
+      font-size: .85rem;
+      color: var(--primary-dark);
+      line-height: 1.3;
+    }
+
+    body.dark-mode .cell-teacher { color: #93c5fd; }
+
+    .cell.mine .cell-teacher { color: var(--success); }
+    body.dark-mode .cell.mine .cell-teacher { color: #4ade80; }
+
+    .cell-subject {
+      font-size: .75rem;
+      color: var(--gray-500);
+      line-height: 1.3;
+    }
+
+    /* ============ الجداول ============ */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .88rem;
+    }
+
+    .data-table th,
+    .data-table td {
+      padding: .7rem .6rem;
+      border-bottom: 1px solid var(--gray-200);
+      text-align: right;
+      vertical-align: middle;
+    }
+
+    .data-table th {
+      background: var(--gray-50);
+      font-weight: 700;
+      color: var(--gray-700);
+      white-space: nowrap;
+    }
+
+    .data-table tr:hover td { background: var(--gray-50); }
+
+    .empty-state {
+      text-align: center;
+      color: var(--gray-500);
+      padding: 2.5rem 1rem;
+      font-size: .95rem;
+    }
+
+    .empty-state .icon {
+      font-size: 2.5rem;
+      margin-bottom: .5rem;
+      opacity: .5;
+    }
+
+    /* ============ شارات ============ */
+    .badge {
+      display: inline-block;
+      padding: .2rem .6rem;
+      border-radius: 999px;
+      font-size: .75rem;
+      font-weight: 700;
+    }
+    .badge-create  { background: var(--success-light); color: #166534; }
+    .badge-delete  { background: var(--danger-light);  color: #991b1b; }
+    .badge-update  { background: var(--warning-light); color: #92400e; }
+    .badge-cancel  { background: #fce7f3; color: #9d174d; }
+    .badge-period  { background: var(--primary-light); color: var(--primary-dark); }
+
+    body.dark-mode .badge-create { color: #86efac; }
+    body.dark-mode .badge-delete { color: #fca5a5; }
+    body.dark-mode .badge-update { color: #fcd34d; }
+    body.dark-mode .badge-cancel { color: #f9a8d4; }
+    body.dark-mode .badge-period { color: #93c5fd; }
+
+    /* ============ النوافذ ============ */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15,23,42,.55);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      backdrop-filter: blur(4px);
+    }
+    .modal-overlay.show { display: flex; }
+
+    .modal {
+      background: var(--card-bg);
+      border-radius: 20px;
+      box-shadow: var(--shadow-lg);
+      width: 100%;
+      max-width: 560px;
+      max-height: 92vh;
+      overflow-y: auto;
+      animation: modalIn .25s cubic-bezier(.34,1.56,.64,1);
+    }
+
+    .modal.modal-wide { max-width: 950px; }
+    .modal.modal-success { max-width: 520px; }
+
+    @keyframes modalIn {
+      from { opacity: 0; transform: scale(.9) translateY(20px); }
+      to   { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .modal-header {
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid var(--gray-200);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      position: sticky;
+      top: 0;
+      background: var(--card-bg);
+      z-index: 1;
+    }
+
+    .modal-header h2 {
+      margin: 0;
+      font-size: 1.15rem;
+      font-weight: 800;
+    }
+
+    .modal-close {
+      background: transparent;
+      color: var(--gray-500);
+      font-size: 1.5rem;
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      transition: background .15s;
+    }
+    .modal-close:hover { background: var(--gray-100); color: var(--gray-900); }
+
+    .modal-body { padding: 1.5rem; }
+    .modal-footer {
+      padding: 1rem 1.5rem 1.5rem;
+      display: flex;
+      gap: .75rem;
+      flex-wrap: wrap;
+    }
+
+    .modal-footer .btn { flex: 1; min-width: 120px; }
+
+    /* ============ نافذة النجاح ============ */
+    .success-animation {
+      text-align: center;
+      padding: 1rem 0 1.5rem;
+    }
+
+    .success-icon {
+      width: 90px;
+      height: 90px;
+      margin: 0 auto 1rem;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #10b981, #059669);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3rem;
+      color: #fff;
+      box-shadow: 0 10px 30px rgba(16,185,129,.35);
+      animation: successPop .5s cubic-bezier(.34,1.56,.64,1);
+    }
+
+    @keyframes successPop {
+      0% { transform: scale(0); opacity: 0; }
+      50% { transform: scale(1.1); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .success-title {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--success);
+      margin: 0 0 .5rem;
+    }
+
+    .success-subtitle {
+      color: var(--gray-500);
+      font-size: .95rem;
+      margin: 0 0 1.5rem;
+    }
+
+    .success-details {
+      background: var(--gray-50);
+      border-radius: 12px;
+      padding: 1rem;
+      margin-bottom: 1.25rem;
+      text-align: right;
+    }
+
+    .success-details .row {
+      display: flex;
+      justify-content: space-between;
+      padding: .4rem 0;
+      border-bottom: 1px dashed var(--gray-200);
+      font-size: .9rem;
+    }
+
+    .success-details .row:last-child { border-bottom: none; }
+    .success-details .row .label { color: var(--gray-500); }
+    .success-details .row .value { font-weight: 700; color: var(--gray-900); }
+
+    /* ============ بطاقة معلومات ============ */
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: .75rem;
+      margin-bottom: 1rem;
+    }
+
+    .info-item {
+      background: var(--gray-50);
+      padding: .7rem .9rem;
+      border-radius: 10px;
+    }
+
+    .info-item .label {
+      font-size: .75rem;
+      color: var(--gray-500);
+      margin-bottom: .15rem;
+    }
+
+    .info-item .value {
+      font-weight: 700;
+      color: var(--gray-900);
+      font-size: .95rem;
+    }
+
+    .locked-note {
+      background: var(--warning-light);
+      color: #92400e;
+      padding: .7rem .95rem;
+      border-radius: 8px;
+      font-size: .85rem;
+      margin-bottom: 1rem;
+      border-right: 4px solid var(--warning);
+    }
+
+    body.dark-mode .locked-note { color: #fcd34d; }
+
+    /* ============ حالة التحميل ============ */
+    .loading {
+      display: none;
+      text-align: center;
+      padding: 3rem 1rem;
+      color: var(--gray-500);
+    }
+    .loading.show { display: block; }
+
+    .spinner {
+      width: 40px; height: 40px;
+      border: 4px solid var(--gray-200);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+      margin: 0 auto 1rem;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ============ التقارير ============ */
+    .report-paper {
+      background: #fff;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 2rem;
+      max-width: 950px;
+      margin: 0 auto;
+      color: #111827;
+    }
+
+    .report-header {
+      text-align: center;
+      border-bottom: 3px double var(--primary);
+      padding-bottom: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .report-header .school-name {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--primary-dark);
+      margin: 0;
+    }
+
+    .report-header .report-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #374151;
+      margin: .35rem 0 0;
+    }
+
+    .report-header .report-period {
+      color: #6b7280;
+      font-size: .9rem;
+      margin: .35rem 0 0;
+    }
+
+    .report-summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: .65rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .report-summary-card {
+      background: #f9fafb;
+      padding: .65rem .8rem;
+      border-radius: 10px;
+      text-align: center;
+      border: 1px solid #e5e7eb;
+    }
+
+    .report-summary-card .label {
+      font-size: .72rem;
+      color: #6b7280;
+      margin-bottom: .2rem;
+    }
+
+    .report-summary-card .value {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: #1d4ed8;
+    }
+
+    .report-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 1.25rem;
+      font-size: .85rem;
+    }
+
+    .report-table th,
+    .report-table td {
+      border: 1px solid #d1d5db;
+      padding: .5rem .55rem;
+      text-align: right;
+    }
+
+    .report-table th {
+      background: #2563eb;
+      color: #fff;
+      font-weight: 700;
+      font-size: .82rem;
+    }
+
+    .report-table tr:nth-child(even) td { background: #fafbfc; }
+
+    .report-subsection-title {
+      font-size: 1rem;
+      font-weight: 800;
+      color: #1d4ed8;
+      margin: 1.5rem 0 .75rem;
+      padding-bottom: .35rem;
+      border-bottom: 2px solid #dbeafe;
+    }
+
+    .report-footer {
+      margin-top: 2rem;
+      padding-top: 1rem;
+      border-top: 1px dashed #d1d5db;
+      display: flex;
+      justify-content: space-between;
+      font-size: .85rem;
+      color: #6b7280;
+    }
+
+    .report-signature {
+      text-align: center;
+      margin-top: 2rem;
+      font-size: .9rem;
+      color: #374151;
+    }
+
+    .report-signature .line {
+      display: inline-block;
+      min-width: 200px;
+      border-bottom: 1px solid #6b7280;
+      margin-top: 2rem;
+      padding-bottom: .25rem;
+    }
+
+    /* ============ الطباعة ============ */
+    @media print {
+      body { background: #fff !important; }
+
+      .app-header,
+      .main-tabs,
+      .toolbar,
+      .no-print,
+      .modal-overlay,
+      #loginScreen,
+      .loading,
+      .toast-container {
+        display: none !important;
+      }
+
+      .container { padding: 0 !important; max-width: 100% !important; }
+
+      .report-paper {
+        box-shadow: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        border-radius: 0 !important;
+        max-width: 100% !important;
+      }
+
+      #tab-schedule,
+      #tab-audit,
+      #tab-reports {
+        display: none !important;
+      }
+
+      #tab-dashboard { display: block !important; }
+
+      .stat-card,
+      .admin-section {
+        box-shadow: none !important;
+        border: 1px solid #d1d5db !important;
+        page-break-inside: avoid;
+        background: #fff !important;
+        color: #111827 !important;
+      }
+
+      .report-table { page-break-inside: auto; }
+      .report-table tr { page-break-inside: avoid; }
+      .report-table thead { display: table-header-group; }
+
+      @page { size: A4; margin: 1.2cm; }
+    }
+
+    body.printing-report .app-header,
+    body.printing-report .main-tabs,
+    body.printing-report .toolbar,
+    body.printing-report .no-print,
+    body.printing-report #tab-dashboard,
+    body.printing-report #tab-audit,
+    body.printing-report #tab-schedule {
+      display: none !important;
+    }
+    body.printing-report #tab-reports { display: block !important; }
+
+    body.printing-dashboard #tab-reports,
+    body.printing-dashboard #tab-audit,
+    body.printing-dashboard #tab-schedule {
+      display: none !important;
+    }
+    body.printing-dashboard #tab-dashboard { display: block !important; }
+
+    /* ============ تجاوب ============ */
+    @media (max-width: 640px) {
+      .login-card { padding: 2rem 1.25rem; }
+      .header-info h1 { font-size: 1rem; }
+      .container { padding: 1rem; }
+      table.schedule { min-width: 720px; }
+      .modal-footer .btn { flex: 1 1 100%; }
+      .stat-value { font-size: 1.4rem; }
+      .report-paper { padding: 1rem; }
+      .toast-container { left: .5rem; right: .5rem; max-width: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- ============ تسجيل الدخول ============ -->
+  <div id="loginScreen" class="login-screen">
+    <button class="theme-toggle-login" onclick="toggleTheme()" title="تبديل الوضع الليلي">
+      <span id="themeIconLogin">🌙</span>
+    </button>
+
+    <div class="login-card">
+      <div class="login-logo">📚</div>
+      <h1 class="login-title" id="schoolTitle">حجز قاعة المصادر التعليمية</h1>
+      <p class="login-subtitle">مدرسة أبو الدرداء للتعليم الأساسي للبنين ٥-١٢</p>
+
+      <div class="login-tabs">
+        <button class="login-tab active" data-role="teacher" onclick="switchLoginTab('teacher')">
+          👨‍🏫 معلم
+        </button>
+        <button class="login-tab" data-role="admin" onclick="switchLoginTab('admin')">
+          🛡️ مدير
+        </button>
+      </div>
+
+      <div id="loginAlert" class="alert alert-error"></div>
+
+      <form id="teacherForm" onsubmit="handleTeacherLogin(event)">
+        <div class="form-group">
+          <label for="teacherName">اسم المعلم</label>
+          <input type="text" id="teacherName" placeholder="مثال: أحمد " required>
+        </div>
+        <div class="form-group">
+          <label for="teacherPassword">كلمة المرور</label>
+          <input type="password" id="teacherPassword" placeholder="••••••" required>
+        </div>
+        <button type="submit" class="btn btn-primary" id="teacherLoginBtn">تسجيل الدخول</button>
+      </form>
+
+      <form id="adminForm" style="display:none;" onsubmit="handleAdminLogin(event)">
+        <div class="form-group">
+          <label for="adminUsername">اسم المستخدم</label>
+          <input type="text" id="adminUsername" placeholder="admin" required>
+        </div>
+        <div class="form-group">
+          <label for="adminPassword">كلمة المرور</label>
+          <input type="password" id="adminPassword" placeholder="••••••" required>
+        </div>
+        <button type="submit" class="btn btn-primary" id="adminLoginBtn">تسجيل الدخول</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============ التطبيق ============ -->
+  <div id="app" class="app">
+    <header class="app-header">
+      <div class="header-content">
+        <div class="header-info">
+          <h1 id="appTitle">حجز قاعة المصادر التعليمية</h1>
+          <p id="appSubtitle">مدرسة أبو الدرداء للتعليم الأساسي للبنين ٥-١٢</p>
+        </div>
+        <div class="header-user">
+          <span class="user-badge" id="userBadge">—</span>
+          <button class="theme-toggle" onclick="toggleTheme()" title="تبديل الوضع الليلي">
+            <span id="themeIcon">🌙</span>
+          </button>
+          <button class="btn btn-secondary btn-sm" onclick="logout()">خروج</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="container">
+      <div class="main-tabs no-print" id="mainTabs">
+        <button class="main-tab active" data-tab="schedule" onclick="switchMainTab('schedule')">
+          📅 الجدول الأسبوعي
+        </button>
+        <button class="main-tab admin" data-tab="dashboard" id="tabDashboard" style="display:none;" onclick="switchMainTab('dashboard')">
+          📊 لوحة الإدارة
+        </button>
+        <button class="main-tab admin" data-tab="reports" id="tabReports" style="display:none;" onclick="switchMainTab('reports')">
+          📈 التقارير
+        </button>
+        <button class="main-tab admin" data-tab="audit" id="tabAudit" style="display:none;" onclick="switchMainTab('audit')">
+          📋 سجل التعديلات
+        </button>
+      </div>
+
+      <div id="alertBox" class="alert no-print"></div>
+
+      <!-- ═══ الجدول ═══ -->
+      <div id="tab-schedule" class="tab-content">
+        <div class="toolbar no-print">
+          <button class="btn btn-secondary btn-sm" onclick="changeWeek(-1)">◀ الأسبوع السابق</button>
+          <span class="week-info" id="weekInfo">—</span>
+          <button class="btn btn-secondary btn-sm" onclick="changeWeek(1)">الأسبوع التالي ▶</button>
+          <button class="btn btn-secondary btn-sm" onclick="goToday()">اليوم</button>
+        </div>
+
+        <div class="loading" id="loading">
+          <div class="spinner"></div>
+          <p>جارٍ تحميل الحجوزات...</p>
+        </div>
+
+        <div class="schedule-wrapper" id="scheduleWrapper" style="display:none;">
+          <div class="schedule-scroll">
+            <table class="schedule">
+              <thead id="scheduleHead"></thead>
+              <tbody id="scheduleBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ لوحة الإدارة ═══ -->
+      <div id="tab-dashboard" class="tab-content" style="display:none;">
+        <div class="loading" id="dashLoading">
+          <div class="spinner"></div>
+          <p>جارٍ تحميل الإحصائيات...</p>
+        </div>
+
+        <div id="dashContent" style="display:none;">
+          <div class="stats-grid" id="statsGrid"></div>
+
+          <div class="admin-section">
+            <h3>📅 حجوزات اليوم <span id="todayDate" style="color:var(--gray-500);font-weight:500;font-size:.9rem;"></span></h3>
+            <div id="todayTable"></div>
+          </div>
+
+          <div class="two-cols">
+            <div class="admin-section">
+              <h3>👨‍🏫 أنشط المعلمين</h3>
+              <div id="topTeachers" class="top-list"></div>
+            </div>
+            <div class="admin-section">
+              <h3>📚 أكثر المواد طلبًا</h3>
+              <div id="topSubjects" class="top-list"></div>
+            </div>
+          </div>
+
+          <div class="admin-section no-print" style="display:flex;gap:.75rem;flex-wrap:wrap;align-items:center;">
+            <button class="btn btn-purple btn-sm" onclick="printDashboard()">🖨️ طباعة الإحصائيات</button>
+            <span style="color:var(--gray-500);font-size:.85rem;">لطباعة لوحة الإحصائيات كصفحة A4</span>
+          </div>
+
+          <div class="admin-section no-print">
+            <h3>⚠️ أدوات الإدارة المتقدمة</h3>
+            <p style="color:var(--gray-500);font-size:.9rem;margin-bottom:1rem;">
+              إجراءات حساسة لا يمكن التراجع عنها. استخدمها بحذر.
+            </p>
+            <div style="display:flex;gap:.75rem;flex-wrap:wrap;">
+              <button class="btn btn-danger btn-sm" onclick="adminDeleteWeekPrompt()">🗑️ حذف حجوزات الأسبوع المعروض</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ التقارير ═══ -->
+      <div id="tab-reports" class="tab-content" style="display:none;">
+        <div class="admin-section no-print">
+          <h3>📈 إنشاء تقرير</h3>
+
+          <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1rem;">
+            <button class="btn btn-primary btn-sm" id="reportTypeWeekly" onclick="setReportType('weekly')">📅 تقرير أسبوعي</button>
+            <button class="btn btn-secondary btn-sm" id="reportTypeMonthly" onclick="setReportType('monthly')">🗓️ تقرير شهري</button>
+          </div>
+
+          <div id="weeklySelector" style="display:block;">
+            <label style="display:block;font-weight:700;margin-bottom:.5rem;color:var(--gray-700);">اختر الأسبوع:</label>
+            <div style="display:flex;gap:.75rem;align-items:center;flex-wrap:wrap;">
+              <button class="btn btn-secondary btn-sm" onclick="shiftReportWeek(-1)">◀ الأسبوع السابق</button>
+              <input type="date" id="reportWeekDate" onchange="onReportWeekChange()"
+                style="padding:.6rem;border:1.5px solid var(--gray-200);border-radius:8px;font-family:inherit;background:var(--card-bg);color:var(--gray-900);">
+              <button class="btn btn-secondary btn-sm" onclick="shiftReportWeek(1)">الأسبوع التالي ▶</button>
+              <button class="btn btn-secondary btn-sm" onclick="setReportToday()">هذا الأسبوع</button>
+            </div>
+          </div>
+
+          <div id="monthlySelector" style="display:none;">
+            <div style="display:flex;gap:.75rem;align-items:center;flex-wrap:wrap;">
+              <div>
+                <label style="display:block;font-weight:700;margin-bottom:.35rem;color:var(--gray-700);font-size:.85rem;">الشهر</label>
+                <select id="reportMonth" onchange="onReportMonthChange()"
+                  style="padding:.6rem;border:1.5px solid var(--gray-200);border-radius:8px;font-family:inherit;min-width:140px;background:var(--card-bg);color:var(--gray-900);">
+                  <option value="1">يناير</option><option value="2">فبراير</option>
+                  <option value="3">مارس</option><option value="4">أبريل</option>
+                  <option value="5">مايو</option><option value="6">يونيو</option>
+                  <option value="7">يوليو</option><option value="8">أغسطس</option>
+                  <option value="9">سبتمبر</option><option value="10">أكتوبر</option>
+                  <option value="11">نوفمبر</option><option value="12">ديسمبر</option>
+                </select>
+              </div>
+              <div>
+                <label style="display:block;font-weight:700;margin-bottom:.35rem;color:var(--gray-700);font-size:.85rem;">السنة</label>
+                <input type="number" id="reportYear" min="2020" max="2099" onchange="onReportMonthChange()"
+                  style="padding:.6rem;border:1.5px solid var(--gray-200);border-radius:8px;font-family:inherit;width:110px;background:var(--card-bg);color:var(--gray-900);">
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-top:1.25rem;display:flex;gap:.75rem;flex-wrap:wrap;">
+            <button class="btn btn-primary btn-sm" onclick="loadReport()">🔍 عرض التقرير</button>
+            <button class="btn btn-purple btn-sm" onclick="printReport()">🖨️ طباعة</button>
+            <button class="btn btn-success btn-sm" onclick="exportReportToExcel()">📊 تصدير Excel</button>
+          </div>
+        </div>
+
+        <div id="reportOutput" style="display:none;">
+          <div class="report-paper" id="reportPaper"></div>
+        </div>
+
+        <div id="reportLoading" class="loading">
+          <div class="spinner"></div>
+          <p>جارٍ تحضير التقرير...</p>
+        </div>
+      </div>
+
+      <!-- ═══ السجل ═══ -->
+      <div id="tab-audit" class="tab-content" style="display:none;">
+        <div class="loading" id="auditLoading">
+          <div class="spinner"></div>
+          <p>جارٍ تحميل السجل...</p>
+        </div>
+        <div class="admin-section" id="auditContent" style="display:none;">
+          <h3>📋 آخر 100 عملية</h3>
+          <div style="overflow-x:auto;max-height:75vh;">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>الوقت</th><th>العملية</th><th>المنفّذ</th>
+                  <th>الدور</th><th>التاريخ/الحصة</th><th>التفاصيل</th>
+                </tr>
+              </thead>
+              <tbody id="auditBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- ============ نافذة الحجز ============ -->
+  <div id="bookingModal" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="modalTitle">تفاصيل الحجز</h2>
+        <button class="modal-close" onclick="closeBookingModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <div id="modalAlert" class="alert"></div>
+        <div id="bookingView">
+          <div class="info-grid" id="bookingInfo"></div>
+        </div>
+        <form id="bookingForm" style="display:none;" onsubmit="handleBookingSubmit(event)">
+          <input type="hidden" id="bookingId">
+          <div id="lockedHintWrapper"></div>
+
+          <div class="form-group">
+            <label>التاريخ</label>
+            <input type="date" id="formDate" required>
+          </div>
+          <div class="form-group">
+            <label>الحصة</label>
+            <select id="formPeriod" required>
+              <option value="1">الحصة الأولى</option><option value="2">الحصة الثانية</option>
+              <option value="3">الحصة الثالثة</option><option value="4">الحصة الرابعة</option>
+              <option value="5">الحصة الخامسة</option><option value="6">الحصة السادسة</option>
+              <option value="7">الحصة السابعة</option><option value="8">الحصة الثامنة</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>اسم المعلم</label>
+            <input type="text" id="formTeacher" required>
+          </div>
+          <div class="form-group">
+            <label>الصف/الشعبة</label>
+            <input type="text" id="formGrade" placeholder="مثال: 8/1">
+          </div>
+          <div class="form-group">
+            <label>المادة</label>
+            <input type="text" id="formSubject">
+          </div>
+          <div class="form-group">
+            <label>عنوان الدرس</label>
+            <input type="text" id="formLesson">
+          </div>
+          <div class="form-group">
+            <label>احتياجات القاعة</label>
+            <textarea id="formNeeds" rows="2" placeholder="مثال: أجهزة حاسوب، بروجكتر..."></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer" id="modalFooter"></div>
+    </div>
+  </div>
+
+  <!-- ============ نافذة نجاح الحجز ============ -->
+  <div id="successModal" class="modal-overlay">
+    <div class="modal modal-success">
+      <div class="modal-body">
+        <div class="success-animation">
+          <div class="success-icon">✓</div>
+          <h2 class="success-title">تم الحجز بنجاح!</h2>
+          <p class="success-subtitle">حجزك محفوظ في النظام</p>
+        </div>
+        <div class="success-details" id="successDetails"></div>
+        <p style="text-align:center;color:var(--gray-500);font-size:.9rem;margin-bottom:1rem;">
+          هل تريد إرسال تفاصيل الحجز عبر واتساب؟
+        </p>
+      </div>
+      <div class="modal-footer" style="flex-direction:column;">
+        <button class="btn btn-whatsapp" onclick="openWhatsAppModal('booking')">
+          📱 إرسال عبر واتساب
+        </button>
+        <button class="btn btn-secondary" onclick="closeSuccessModal()">إغلاق</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ نافذة إدخال رقم واتساب ============ -->
+  <div id="whatsappModal" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>📱 إرسال عبر واتساب</h2>
+        <button class="modal-close" onclick="closeWhatsAppModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <div id="whatsappAlert" class="alert"></div>
+
+        <div style="background:var(--primary-light);padding:1rem;border-radius:10px;margin-bottom:1.25rem;">
+          <p style="margin:0;font-size:.9rem;color:var(--primary-dark);">
+            📌 سيتم فتح واتساب مع الرسالة جاهزة. أدخل رقم هاتفك بصيغة دولية.
+          </p>
+        </div>
+
+        <div class="form-group">
+          <label for="whatsappPhone">رقم الواتساب</label>
+          <input type="tel" id="whatsappPhone" placeholder="مثال: 96891234567" dir="ltr"
+            style="text-align:left;">
+          <span class="form-hint">💡 يمكنك إدخال الرقم بدون رمز الدولة (مثال: 91234567) وسيُضاف 968 تلقائيًا</span>
+        </div>
+
+        <div class="form-group">
+          <label>معاينة الرسالة</label>
+          <div id="whatsappPreview" style="background:var(--gray-50);padding:1rem;border-radius:10px;
+            font-size:.85rem;line-height:1.7;white-space:pre-wrap;max-height:220px;overflow-y:auto;
+            border:1px solid var(--gray-200);font-family:monospace;direction:rtl;"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-whatsapp" onclick="confirmSendWhatsApp()">
+          📱 فتح واتساب وإرسال
+        </button>
+        <button class="btn btn-secondary" onclick="closeWhatsAppModal()">إلغاء</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ نافذة الإلغاء (مدير) ============ -->
+  <div id="cancelModal" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>🗑️ إلغاء الحجز</h2>
+        <button class="modal-close" onclick="closeCancelModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <div id="cancelAlert" class="alert"></div>
+        <p style="margin-top:0;">سيتم إلغاء الحجز التالي:</p>
+        <div id="cancelInfo" class="info-grid" style="margin-bottom:1rem;"></div>
+        <div class="form-group">
+          <label for="cancelReason">سبب الإلغاء (اختياري)</label>
+          <textarea id="cancelReason" rows="3" placeholder="مثال: تعارض مع فعالية مدرسية..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-danger" onclick="confirmAdminCancel()">🗑️ تأكيد الإلغاء</button>
+        <button class="btn btn-secondary" onclick="closeCancelModal()">تراجع</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ نافذة الإلغاء (معلم) ============ -->
+  <div id="cancelTeacherModal" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>⚠️ تأكيد إلغاء الحجز</h2>
+        <button class="modal-close" onclick="closeCancelTeacherModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <p style="margin-top:0;">هل أنت متأكد من إلغاء حجزك؟</p>
+        <div id="cancelTeacherInfo" class="info-grid" style="margin-bottom:1rem;"></div>
+        <div style="background:var(--danger-light);padding:.75rem;border-radius:8px;font-size:.88rem;color:#991b1b;">
+          ⚠️ لا يمكن التراجع عن هذه العملية بعد التأكيد
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-danger" onclick="confirmTeacherCancel()">🗑️ نعم، إلغاء الحجز</button>
+        <button class="btn btn-secondary" onclick="closeCancelTeacherModal()">تراجع</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /***********************************************
+     * الحالة العامة
+     ***********************************************/
+    const state = {
+      user: null,
+      weekStart: null,
+      bookings: [],
+      currentCell: null,
+      currentTab: 'schedule',
+      cancelTarget: null,
+      reportType: 'weekly',
+      reportData: null,
+      reportMeta: null,
+      successData: null,
+      whatsappData: null,
+      whatsappType: 'booking'
+    };
+
+    const DAY_NAMES = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس'];
+    const MONTH_NAMES_AR = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
+                             'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
+
+    /***********************************************
+     * أدوات مساعدة
+     ***********************************************/
+    function pad2(n) { return (n < 10 ? '0' : '') + n; }
+
+    function formatDate(d) {
+      return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+    }
+
+    function formatArabicDate(dateStr) {
+      if (!dateStr) return '—';
+      const d = new Date(dateStr + 'T00:00:00');
+      if (isNaN(d.getTime())) return dateStr;
+      return pad2(d.getDate()) + '/' + pad2(d.getMonth() + 1) + '/' + d.getFullYear();
+    }
+
+    function getSunday(d) {
+      const x = new Date(d);
+      x.setHours(0, 0, 0, 0);
+      x.setDate(x.getDate() - x.getDay());
+      return x;
+    }
+
+    function escapeHtml(s) {
+      return String(s == null ? '' : s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    /***********************************************
+     * Toast Notifications
+     ***********************************************/
+    function showToast(msg, type, duration) {
+      type = type || 'info';
+      duration = duration || 3500;
+
+      const container = document.getElementById('toastContainer');
+      const icons = { success: '✓', error: '✕', warning: '⚠', info: 'ℹ' };
+
+      const toast = document.createElement('div');
+      toast.className = 'toast ' + type;
+      toast.innerHTML = '<span class="icon">' + (icons[type] || 'ℹ') + '</span>' +
+                        '<span>' + escapeHtml(msg) + '</span>';
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.classList.add('fade-out');
+        setTimeout(() => toast.remove(), 300);
+      }, duration);
+    }
+
+    function showToastPersistent(msg, type, duration) {
+      type = type || 'info';
+      duration = duration || 10000;
+
+      const container = document.getElementById('toastContainer');
+      const icons = { success: '✓', error: '✕', warning: '⚠', info: 'ℹ' };
+
+      const toast = document.createElement('div');
+      toast.className = 'toast ' + type;
+      toast.innerHTML = '<span class="icon">' + (icons[type] || 'ℹ') + '</span>' +
+                        '<span>' + escapeHtml(msg) + '</span>';
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.classList.add('fade-out');
+        setTimeout(() => toast.remove(), 300);
+      }, duration);
+    }
+
+    function showModalAlert(msg, type) {
+      const el = document.getElementById('modalAlert');
+      el.className = 'alert alert-' + (type || 'error') + ' show';
+      el.textContent = msg;
+    }
+
+    function hideModalAlert() {
+      document.getElementById('modalAlert').className = 'alert';
+    }
+
+    /***********************************************
+     * الوضع الليلي
+     ***********************************************/
+    function toggleTheme() {
+      const isDark = document.body.classList.toggle('dark-mode');
+      document.getElementById('themeIcon').textContent = isDark ? '☀️' : '🌙';
+      document.getElementById('themeIconLogin').textContent = isDark ? '☀️' : '🌙';
+      try { localStorage.setItem('theme', isDark ? 'dark' : 'light'); } catch (e) {}
+    }
+
+    function initTheme() {
+      try {
+        const saved = localStorage.getItem('theme');
+        if (saved === 'dark') {
+          document.body.classList.add('dark-mode');
+          document.getElementById('themeIcon').textContent = '☀️';
+          document.getElementById('themeIconLogin').textContent = '☀️';
+        }
+      } catch (e) {}
+    }
+
+    /***********************************************
+     * تسجيل الدخول
+     ***********************************************/
+    function switchLoginTab(role) {
+      document.querySelectorAll('.login-tab').forEach(t => {
+        t.classList.toggle('active', t.dataset.role === role);
+      });
+      document.getElementById('teacherForm').style.display = role === 'teacher' ? 'block' : 'none';
+      document.getElementById('adminForm').style.display   = role === 'admin'   ? 'block' : 'none';
+      document.getElementById('loginAlert').classList.remove('show');
+    }
+
+    function handleTeacherLogin(event) {
+      event.preventDefault();
+      const name = document.getElementById('teacherName').value.trim();
+      const password = document.getElementById('teacherPassword').value;
+
+      const btn = document.getElementById('teacherLoginBtn');
+      const alertEl = document.getElementById('loginAlert');
+
+      if (!name || !password) {
+        alertEl.className = 'alert alert-error show';
+        alertEl.textContent = 'يرجى إدخال اسم المعلم وكلمة المرور';
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'جارٍ التحقق...';
+
+      google.script.run
+        .withSuccessHandler(res => {
+          btn.disabled = false;
+          btn.textContent = 'تسجيل الدخول';
+
+          if (res.success) {
+            state.user = { role: 'teacher', name: res.teacher };
+            enterApp(res.schoolName, res.systemName);
+            showToast('مرحبًا ' + res.teacher, 'success');
+          } else {
+            alertEl.className = 'alert alert-error show';
+            alertEl.textContent = res.message || 'فشل تسجيل الدخول';
+          }
+        })
+        .withFailureHandler(err => {
+          btn.disabled = false;
+          btn.textContent = 'تسجيل الدخول';
+          alertEl.className = 'alert alert-error show';
+          alertEl.textContent = 'حدث خطأ: ' + err.message;
+        })
+        .teacherLoginSecure(name, password);
+    }
+
+    function handleAdminLogin(event) {
+      event.preventDefault();
+      const username = document.getElementById('adminUsername').value.trim();
+      const password = document.getElementById('adminPassword').value;
+
+      const btn = document.getElementById('adminLoginBtn');
+      const alertEl = document.getElementById('loginAlert');
+
+      if (!username || !password) {
+        alertEl.className = 'alert alert-error show';
+        alertEl.textContent = 'يرجى إدخال اسم المستخدم وكلمة المرور';
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'جارٍ التحقق...';
+
+      google.script.run
+        .withSuccessHandler(res => {
+          btn.disabled = false;
+          btn.textContent = 'تسجيل الدخول';
+
+          if (res.success) {
+            state.user = { role: 'admin', username: res.username };
+            enterApp('', '');
+            showToast('مرحبًا ' + res.username, 'success');
+          } else {
+            alertEl.className = 'alert alert-error show';
+            alertEl.textContent = res.message || 'فشل تسجيل الدخول';
+          }
+        })
+        .withFailureHandler(err => {
+          btn.disabled = false;
+          btn.textContent = 'تسجيل الدخول';
+          alertEl.className = 'alert alert-error show';
+          alertEl.textContent = 'حدث خطأ: ' + err.message;
+        })
+        .adminLoginSecure(username, password);
+    }
+
+    function enterApp(schoolName, systemName) {
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('app').classList.add('show');
+
+      const badge = document.getElementById('userBadge');
+      if (state.user.role === 'teacher') {
+        badge.textContent = '👨‍🏫 ' + state.user.name;
+        badge.classList.remove('admin');
+        document.getElementById('tabDashboard').style.display = 'none';
+        document.getElementById('tabReports').style.display = 'none';
+        document.getElementById('tabAudit').style.display = 'none';
+      } else {
+        badge.textContent = '🛡️ ' + state.user.username;
+        badge.classList.add('admin');
+        document.getElementById('tabDashboard').style.display = 'inline-block';
+        document.getElementById('tabReports').style.display = 'inline-block';
+        document.getElementById('tabAudit').style.display = 'inline-block';
+      }
+
+      if (systemName) document.getElementById('appTitle').textContent = systemName;
+      if (schoolName) document.getElementById('appSubtitle').textContent = schoolName;
+
+      state.weekStart = getSunday(new Date());
+
+      let lastTab = 'schedule';
+      try {
+        lastTab = localStorage.getItem('lastTab') || 'schedule';
+        if (state.user.role === 'teacher' &&
+            (lastTab === 'dashboard' || lastTab === 'reports' || lastTab === 'audit')) {
+          lastTab = 'schedule';
+        }
+      } catch (e) {}
+
+      switchMainTab(lastTab);
+    }
+
+    function logout() {
+      state.user = null;
+      state.bookings = [];
+      state.reportData = null;
+      state.reportMeta = null;
+      document.getElementById('app').classList.remove('show');
+      document.getElementById('loginScreen').style.display = 'flex';
+      document.getElementById('teacherForm').reset();
+      document.getElementById('adminForm').reset();
+      document.getElementById('loginAlert').classList.remove('show');
+      document.body.classList.remove('printing-report', 'printing-dashboard');
+    }
+
+    /***********************************************
+     * التبويبات
+     ***********************************************/
+    function switchMainTab(tab) {
+      state.currentTab = tab;
+
+      document.querySelectorAll('.main-tab').forEach(t => {
+        t.classList.toggle('active', t.dataset.tab === tab);
+      });
+
+      document.querySelectorAll('.tab-content').forEach(c => {
+        c.style.display = 'none';
+      });
+
+      document.getElementById('tab-' + tab).style.display = 'block';
+
+      try { localStorage.setItem('lastTab', tab); } catch (e) {}
+
+      if (tab === 'schedule') loadWeek();
+      else if (tab === 'dashboard') loadDashboard();
+      else if (tab === 'reports') { initReportDefaults(); setReportType(state.reportType || 'weekly'); }
+      else if (tab === 'audit') loadAuditLog();
+    }
+
+    /***********************************************
+     * الجدول الأسبوعي
+     ***********************************************/
+    function changeWeek(delta) {
+      const d = new Date(state.weekStart);
+      d.setDate(d.getDate() + delta * 7);
+      state.weekStart = d;
+      loadWeek();
+    }
+
+    function goToday() {
+      state.weekStart = getSunday(new Date());
+      loadWeek();
+    }
+
+    function loadWeek() {
+      document.getElementById('loading').classList.add('show');
+      document.getElementById('scheduleWrapper').style.display = 'none';
+
+      const startStr = formatDate(state.weekStart);
+
+      google.script.run
+        .withSuccessHandler(res => {
+          document.getElementById('loading').classList.remove('show');
+          document.getElementById('scheduleWrapper').style.display = 'block';
+
+          if (!res.success) {
+            showToast(res.message || 'فشل تحميل الحجوزات', 'error');
+            return;
+          }
+          state.bookings = res.bookings || [];
+          renderWeekHeader(res.startDate, res.endDate);
+          renderSchedule();
+        })
+        .withFailureHandler(err => {
+          document.getElementById('loading').classList.remove('show');
+          showToast('حدث خطأ في الاتصال: ' + err.message, 'error');
+        })
+        .getWeekBookings(startStr);
+    }
+
+    function renderWeekHeader(startDate, endDate) {
+      document.getElementById('weekInfo').textContent =
+        'من ' + formatArabicDate(startDate) + ' إلى ' + formatArabicDate(endDate);
+    }
+
+    function renderSchedule() {
+      const head = document.getElementById('scheduleHead');
+      const body = document.getElementById('scheduleBody');
+
+      let headHtml = '<tr><th>الحصة</th>';
+      for (let i = 0; i < 5; i++) {
+        const d = new Date(state.weekStart);
+        d.setDate(d.getDate() + i);
+        const dateStr = formatDate(d);
+        headHtml += '<th>' + DAY_NAMES[i] +
+                    '<br><small style="opacity:.85;font-weight:400;">' +
+                    formatArabicDate(dateStr) + '</small></th>';
+      }
+      headHtml += '</tr>';
+      head.innerHTML = headHtml;
+
+      const index = {};
+      state.bookings.forEach(b => { index[b.date + '|' + b.period] = b; });
+
+      const isTeacher = state.user.role === 'teacher';
+      const myName = state.user.name;
+
+      let bodyHtml = '';
+      for (let p = 1; p <= 8; p++) {
+        bodyHtml += '<tr><th>الحصة ' + p + '</th>';
+        for (let i = 0; i < 5; i++) {
+          const d = new Date(state.weekStart);
+          d.setDate(d.getDate() + i);
+          const dateStr = formatDate(d);
+          const b = index[dateStr + '|' + p];
+
+          if (b) {
+            const isMine = isTeacher && b.teacher === myName;
+            const cls = isMine ? 'cell booked mine' : 'cell booked';
+            bodyHtml +=
+              '<td><div class="' + cls + '" onclick="openBooking(\'' + dateStr + '\',' + p + ')">' +
+              '<div class="cell-teacher">' + (isMine ? '⭐ ' : '') + escapeHtml(b.teacher || '') + '</div>' +
+              '<div class="cell-subject">' + escapeHtml(b.subject || '') + '</div>' +
+              '</div></td>';
+          } else {
+            bodyHtml +=
+              '<td><div class="cell" onclick="openBooking(\'' + dateStr + '\',' + p + ')">' +
+              '<div class="cell-empty">+</div></div></td>';
+          }
+        }
+        bodyHtml += '</tr>';
+      }
+      body.innerHTML = bodyHtml;
+    }
+
+    /***********************************************
+     * نافذة الحجز
+     ***********************************************/
+    function openBooking(dateStr, period) {
+      const booking = state.bookings.find(b => b.date === dateStr && b.period === period) || null;
+      state.currentCell = { date: dateStr, period: period, booking: booking };
+
+      document.getElementById('bookingModal').classList.add('show');
+      hideModalAlert();
+
+      if (booking) {
+        const isOwner = state.user.role === 'teacher' && state.user.name === booking.teacher;
+        const isAdmin = state.user.role === 'admin';
+
+        document.getElementById('modalTitle').textContent =
+          isOwner ? '📌 حجزي' : (isAdmin ? '🛡️ تفاصيل الحجز' : '📖 تفاصيل الحجز');
+
+        document.getElementById('bookingView').style.display = 'block';
+        document.getElementById('bookingForm').style.display = 'none';
+
+        document.getElementById('bookingInfo').innerHTML =
+          '<div class="info-item"><div class="label">التاريخ</div><div class="value">' + formatArabicDate(booking.date) + '</div></div>' +
+          '<div class="info-item"><div class="label">اليوم</div><div class="value">' + escapeHtml(booking.day || '') + '</div></div>' +
+          '<div class="info-item"><div class="label">الحصة</div><div class="value">الحصة ' + booking.period + '</div></div>' +
+          '<div class="info-item"><div class="label">المعلم</div><div class="value">' + escapeHtml(booking.teacher || '') + '</div></div>' +
+          '<div class="info-item"><div class="label">الصف/الشعبة</div><div class="value">' + escapeHtml(booking.grade || '—') + '</div></div>' +
+          '<div class="info-item"><div class="label">المادة</div><div class="value">' + escapeHtml(booking.subject || '—') + '</div></div>' +
+          '<div class="info-item"><div class="label">عنوان الدرس</div><div class="value">' + escapeHtml(booking.lesson || '—') + '</div></div>' +
+          '<div class="info-item"><div class="label">احتياجات القاعة</div><div class="value">' + escapeHtml(booking.needs || '—') + '</div></div>';
+
+        const footer = document.getElementById('modalFooter');
+        let html = '';
+
+        if (isOwner) {
+          html += '<button class="btn btn-whatsapp btn-sm" onclick="openWhatsAppModal(\'current\')">📱 واتساب</button>';
+          html += '<button class="btn btn-primary" onclick="editMyBooking()">✏️ تعديل</button>';
+          html += '<button class="btn btn-danger" onclick="openCancelTeacherModal()">🗑️ إلغاء</button>';
+        } else if (isAdmin) {
+          html += '<button class="btn btn-primary" onclick="editCurrentBooking()">✏️ تعديل (مدير)</button>';
+          html += '<button class="btn btn-danger" onclick="openCancelModal()">🗑️ إلغاء الحجز</button>';
+        } else {
+          html += '<div style="width:100%;text-align:center;color:var(--gray-500);font-size:.9rem;padding:.5rem;">👁️ وضع العرض فقط</div>';
+        }
+
+        html += '<button class="btn btn-secondary" onclick="closeBookingModal()">إغلاق</button>';
+        footer.innerHTML = html;
+
+      } else {
+        document.getElementById('modalTitle').textContent = 'إضافة حجز جديد';
+        document.getElementById('bookingView').style.display = 'none';
+        document.getElementById('bookingForm').style.display = 'block';
+
+        document.getElementById('bookingId').value = '';
+        document.getElementById('formDate').value = dateStr;
+        document.getElementById('formPeriod').value = period;
+        document.getElementById('formTeacher').value = state.user.role === 'teacher' ? state.user.name : '';
+        document.getElementById('formGrade').value = '';
+        document.getElementById('formSubject').value = '';
+        document.getElementById('formLesson').value = '';
+        document.getElementById('formNeeds').value = '';
+
+        toggleFormFieldsLock(false);
+
+        document.getElementById('modalFooter').innerHTML =
+          '<button type="button" class="btn btn-primary" onclick="submitBookingForm()">💾 حفظ الحجز</button>' +
+          '<button type="button" class="btn btn-secondary" onclick="closeBookingModal()">إلغاء</button>';
+      }
+    }
+
+    function closeBookingModal() {
+      document.getElementById('bookingModal').classList.remove('show');
+      state.currentCell = null;
+    }
+
+    function editMyBooking() {
+      const b = state.currentCell && state.currentCell.booking;
+      if (!b) return;
+
+      document.getElementById('modalTitle').textContent = '✏️ تعديل بيانات حجزي';
+      document.getElementById('bookingView').style.display = 'none';
+      document.getElementById('bookingForm').style.display = 'block';
+
+      document.getElementById('bookingId').value    = b.id;
+      document.getElementById('formDate').value     = b.date;
+      document.getElementById('formPeriod').value   = b.period;
+      document.getElementById('formTeacher').value  = b.teacher || '';
+      document.getElementById('formGrade').value    = b.grade || '';
+      document.getElementById('formSubject').value  = b.subject || '';
+      document.getElementById('formLesson').value   = b.lesson || '';
+      document.getElementById('formNeeds').value    = b.needs || '';
+
+      toggleFormFieldsLock(true);
+
+      document.getElementById('modalFooter').innerHTML =
+        '<button type="button" class="btn btn-primary" onclick="submitTeacherUpdate()">💾 حفظ التعديلات</button>' +
+        '<button type="button" class="btn btn-secondary" onclick="openBooking(\'' + b.date + '\',' + b.period + ')">إلغاء</button>';
+    }
+
+    function editCurrentBooking() {
+      const b = state.currentCell && state.currentCell.booking;
+      if (!b) return;
+
+      document.getElementById('modalTitle').textContent = 'تعديل الحجز (مدير)';
+      document.getElementById('bookingView').style.display = 'none';
+      document.getElementById('bookingForm').style.display = 'block';
+
+      document.getElementById('bookingId').value = b.id;
+      document.getElementById('formDate').value = b.date;
+      document.getElementById('formPeriod').value = b.period;
+      document.getElementById('formTeacher').value = b.teacher || '';
+      document.getElementById('formGrade').value = b.grade || '';
+      document.getElementById('formSubject').value = b.subject || '';
+      document.getElementById('formLesson').value = b.lesson || '';
+      document.getElementById('formNeeds').value = b.needs || '';
+
+      toggleFormFieldsLock(false);
+
+      document.getElementById('modalFooter').innerHTML =
+        '<button type="button" class="btn btn-primary" onclick="submitBookingForm()">💾 حفظ التعديلات</button>' +
+        '<button type="button" class="btn btn-secondary" onclick="openBooking(\'' + b.date + '\',' + b.period + ')">إلغاء</button>';
+    }
+
+    function toggleFormFieldsLock(lock) {
+      ['formDate', 'formPeriod', 'formTeacher'].forEach(id => {
+        document.getElementById(id).disabled = lock;
+      });
+
+      const wrap = document.getElementById('lockedHintWrapper');
+      wrap.innerHTML = lock
+        ? '<div class="locked-note">🔒 التاريخ والحصة واسم المعلم غير قابلة للتعديل من قبل المعلم.</div>'
+        : '';
+    }
+
+    function handleBookingSubmit(event) {
+      event.preventDefault();
+      submitBookingForm();
+    }
+
+    function submitBookingForm() {
+      const id = document.getElementById('bookingId').value;
+      const data = {
+        date:    document.getElementById('formDate').value,
+        period:  Number(document.getElementById('formPeriod').value),
+        teacher: document.getElementById('formTeacher').value.trim(),
+        grade:   document.getElementById('formGrade').value.trim(),
+        subject: document.getElementById('formSubject').value.trim(),
+        lesson:  document.getElementById('formLesson').value.trim(),
+        needs:   document.getElementById('formNeeds').value.trim()
+      };
+
+      if (!data.date || !data.teacher) {
+        showModalAlert('يرجى إدخال التاريخ واسم المعلم', 'error');
+        return;
+      }
+
+      hideModalAlert();
+
+      const handler = res => {
+        if (res.success) {
+          closeBookingModal();
+
+          if (!id) {
+            showBookingSuccess(data, res.bookingId);
+          } else {
+            showToast(res.message || 'تم الحفظ', 'success');
+          }
+          loadWeek();
+        } else {
+          showModalAlert(res.message || 'فشل الحفظ', res.conflict ? 'warning' : 'error');
+        }
+      };
+
+      const fail = err => showModalAlert('حدث خطأ: ' + err.message, 'error');
+
+      if (id) {
+        google.script.run
+          .withSuccessHandler(handler)
+          .withFailureHandler(fail)
+          .updateBooking(id, data, state.user.username || 'admin');
+      } else {
+        google.script.run
+          .withSuccessHandler(handler)
+          .withFailureHandler(fail)
+          .createBooking(data);
+      }
+    }
+
+    function submitTeacherUpdate() {
+      const id = document.getElementById('bookingId').value;
+      if (!id) return;
+
+      const updates = {
+        grade:   document.getElementById('formGrade').value.trim(),
+        subject: document.getElementById('formSubject').value.trim(),
+        lesson:  document.getElementById('formLesson').value.trim(),
+        needs:   document.getElementById('formNeeds').value.trim()
+      };
+
+      hideModalAlert();
+
+      google.script.run
+        .withSuccessHandler(res => {
+          if (res.success) {
+            closeBookingModal();
+            showToast(res.message || 'تم تحديث الحجز', 'success');
+            loadWeek();
+          } else {
+            showModalAlert(res.message || 'فشل التحديث', 'error');
+          }
+        })
+        .withFailureHandler(err => showModalAlert('حدث خطأ: ' + err.message, 'error'))
+        .teacherUpdateBooking(id, state.user.name, updates);
+    }
+
+    /***********************************************
+     * نافذة النجاح
+     ***********************************************/
+    function showBookingSuccess(data, bookingId) {
+      state.successData = {
+        id: bookingId,
+        date: data.date,
+        period: data.period,
+        teacher: data.teacher,
+        grade: data.grade,
+        subject: data.subject,
+        lesson: data.lesson,
+        needs: data.needs
+      };
+
+      const day = DAY_NAMES[new Date(data.date + 'T00:00:00').getDay()] || '';
+
+      document.getElementById('successDetails').innerHTML =
+        '<div class="row"><span class="label">📅 التاريخ</span><span class="value">' + formatArabicDate(data.date) + ' (' + day + ')</span></div>' +
+        '<div class="row"><span class="label">⏰ الحصة</span><span class="value">الحصة ' + data.period + '</span></div>' +
+        '<div class="row"><span class="label">👨‍🏫 المعلم</span><span class="value">' + escapeHtml(data.teacher) + '</span></div>' +
+        (data.grade   ? '<div class="row"><span class="label">🎓 الصف</span><span class="value">' + escapeHtml(data.grade) + '</span></div>' : '') +
+        (data.subject ? '<div class="row"><span class="label">📚 المادة</span><span class="value">' + escapeHtml(data.subject) + '</span></div>' : '') +
+        (data.lesson  ? '<div class="row"><span class="label">📖 الدرس</span><span class="value">' + escapeHtml(data.lesson) + '</span></div>' : '') +
+        (data.needs   ? '<div class="row"><span class="label">🛠️ الاحتياجات</span><span class="value">' + escapeHtml(data.needs) + '</span></div>' : '');
+
+      document.getElementById('successModal').classList.add('show');
+    }
+
+    function closeSuccessModal() {
+      document.getElementById('successModal').classList.remove('show');
+      state.successData = null;
+    }
+
+    /***********************************************
+     * نافذة واتساب (مع إدخال الرقم)
+     ***********************************************/
+    function openWhatsAppModal(type) {
+      state.whatsappType = type;
+
+      let data;
+      if (type === 'booking') {
+        data = state.successData;
+      } else if (type === 'current') {
+        data = state.currentCell && state.currentCell.booking;
+      } else if (type === 'cancel') {
+        data = state.cancelTarget;
+      }
+
+      if (!data) return;
+
+      state.whatsappData = data;
+
+      document.getElementById('whatsappModal').classList.add('show');
+      document.getElementById('whatsappAlert').className = 'alert';
+      document.getElementById('whatsappPhone').value = '';
+
+      let preview = '';
+      if (type === 'cancel') {
+        preview = buildCancelMessage(data, '');
+      } else {
+        preview = buildBookingMessage(data);
+      }
+      document.getElementById('whatsappPreview').textContent = preview;
+
+      document.getElementById('successModal').classList.remove('show');
+      document.getElementById('bookingModal').classList.remove('show');
+      document.getElementById('cancelModal').classList.remove('show');
+
+      setTimeout(() => document.getElementById('whatsappPhone').focus(), 300);
+    }
+
+    function closeWhatsAppModal() {
+      document.getElementById('whatsappModal').classList.remove('show');
+      state.whatsappData = null;
+    }
+
+    function buildBookingMessage(data) {
+      const day = DAY_NAMES[new Date(data.date + 'T00:00:00').getDay()] || '';
+      const schoolName = document.getElementById('appSubtitle').textContent || '';
+
+      let msg = '📌 *تفاصيل حجز قاعة المصادر التعليمية*\n';
+      msg += '━━━━━━━━━━━━━━━━━━\n';
+      if (schoolName) msg += '🏫 ' + schoolName + '\n';
+      msg += '📅 *التاريخ:* ' + formatArabicDate(data.date) + ' (' + day + ')\n';
+      msg += '⏰ *الحصة:* الحصة ' + data.period + '\n';
+      msg += '👨‍🏫 *المعلم:* ' + (data.teacher || '—') + '\n';
+      if (data.grade)   msg += '🎓 *الصف:* ' + data.grade + '\n';
+      if (data.subject) msg += '📚 *المادة:* ' + data.subject + '\n';
+      if (data.lesson)  msg += '📖 *الدرس:* ' + data.lesson + '\n';
+      if (data.needs)   msg += '🛠️ *الاحتياجات:* ' + data.needs + '\n';
+      msg += '━━━━━━━━━━━━━━━━━━\n';
+      msg += '🤖 من نظام حجز قاعة المصادر';
+      return msg;
+    }
+
+    function buildCancelMessage(data, reason) {
+      const day = DAY_NAMES[new Date(data.date + 'T00:00:00').getDay()] || '';
+      const schoolName = document.getElementById('appSubtitle').textContent || '';
+
+      let msg = '🚫 *إشعار إلغاء حجز*\n';
+      msg += '━━━━━━━━━━━━━━━━━━\n';
+      if (schoolName) msg += '🏫 ' + schoolName + '\n';
+      msg += '📅 *التاريخ:* ' + formatArabicDate(data.date) + ' (' + day + ')\n';
+      msg += '⏰ *الحصة:* الحصة ' + data.period + '\n';
+      msg += '👨‍🏫 *المعلم:* ' + (data.teacher || '—') + '\n';
+      if (data.subject) msg += '📚 *المادة:* ' + data.subject + '\n';
+      if (data.lesson)  msg += '📖 *الدرس:* ' + data.lesson + '\n';
+      if (reason)       msg += '📝 *سبب الإلغاء:* ' + reason + '\n';
+      msg += '━━━━━━━━━━━━━━━━━━\n';
+      msg += '🤖 من نظام حجز قاعة المصادر';
+      return msg;
+    }
+
+    function normalizePhoneNumber(phone) {
+      let p = String(phone || '').replace(/[\s\-\(\)]/g, '');
+      if (!p) return '';
+
+      if (p.startsWith('00')) p = p.substring(2);
+      if (p.startsWith('+'))  p = p.substring(1);
+
+      if (/^[0-9]{8}$/.test(p)) p = '968' + p;
+
+      if (!/^[0-9]{8,15}$/.test(p)) return '';
+
+      return p;
+    }
+
+    function confirmSendWhatsApp() {
+      const input = document.getElementById('whatsappPhone').value.trim();
+      const alertEl = document.getElementById('whatsappAlert');
+      alertEl.className = 'alert';
+
+      const phone = normalizePhoneNumber(input);
+
+      if (!phone) {
+        alertEl.className = 'alert alert-error show';
+        alertEl.textContent = 'يرجى إدخال رقم هاتف صحيح (مثال: 96891234567 أو 91234567)';
+        return;
+      }
+
+      const data = state.whatsappData;
+      if (!data) return;
+
+      let message;
+      if (state.whatsappType === 'cancel') {
+        const reason = document.getElementById('cancelReason') ?
+                       document.getElementById('cancelReason').value.trim() : '';
+        message = buildCancelMessage(data, reason);
+      } else {
+        message = buildBookingMessage(data);
+      }
+
+      const url = 'https://wa.me/' + phone + '?text=' + encodeURIComponent(message);
+      window.open(url, '_blank');
+
+      closeWhatsAppModal();
+      showToast('تم فتح واتساب', 'success');
+
+      if (state.whatsappType === 'booking') {
+        state.successData = null;
+      }
+    }
+
+    /***********************************************
+     * إلغاء حجز المعلم
+     ***********************************************/
+    function openCancelTeacherModal() {
+      const b = state.currentCell && state.currentCell.booking;
+      if (!b) return;
+
+      document.getElementById('bookingModal').classList.remove('show');
+      document.getElementById('cancelTeacherModal').classList.add('show');
+
+      document.getElementById('cancelTeacherInfo').innerHTML =
+        '<div class="info-item"><div class="label">التاريخ</div><div class="value">' + formatArabicDate(b.date) + '</div></div>' +
+        '<div class="info-item"><div class="label">الحصة</div><div class="value">الحصة ' + b.period + '</div></div>' +
+        '<div class="info-item"><div class="label">المادة</div><div class="value">' + escapeHtml(b.subject || '—') + '</div></div>' +
+        '<div class="info-item"><div class="label">الدرس</div><div class="value">' + escapeHtml(b.lesson || '—') + '</div></div>';
+    }
+
+    function closeCancelTeacherModal() {
+      document.getElementById('cancelTeacherModal').classList.remove('show');
+    }
+
+    function confirmTeacherCancel() {
+      const b = state.currentCell && state.currentCell.booking;
+      if (!b) return;
+
+      google.script.run
+        .withSuccessHandler(res => {
+          if (res.success) {
+            closeCancelTeacherModal();
+            showToast('تم إلغاء الحجز بنجاح', 'success');
+            loadWeek();
+          } else {
+            showToast(res.message || 'فشل الإلغاء', 'error');
+          }
+        })
+        .withFailureHandler(err => showToast('حدث خطأ: ' + err.message, 'error'))
+        .deleteBooking(b.id, state.user.name, 'teacher');
+    }
+
+    /***********************************************
+     * إلغاء الحجز (مدير)
+     ***********************************************/
+    function openCancelModal() {
+      const b = state.currentCell && state.currentCell.booking;
+      if (!b) return;
+
+      state.cancelTarget = b;
+
+      document.getElementById('bookingModal').classList.remove('show');
+      document.getElementById('cancelModal').classList.add('show');
+      document.getElementById('cancelAlert').className = 'alert';
+      document.getElementById('cancelReason').value = '';
+
+      document.getElementById('cancelInfo').innerHTML =
+        '<div class="info-item"><div class="label">التاريخ</div><div class="value">' + formatArabicDate(b.date) + '</div></div>' +
+        '<div class="info-item"><div class="label">الحصة</div><div class="value">الحصة ' + b.period + '</div></div>' +
+        '<div class="info-item"><div class="label">المعلم</div><div class="value">' + escapeHtml(b.teacher || '') + '</div></div>' +
+        '<div class="info-item"><div class="label">المادة</div><div class="value">' + escapeHtml(b.subject || '—') + '</div></div>';
+    }
+
+    function closeCancelModal() {
+      document.getElementById('cancelModal').classList.remove('show');
+      state.cancelTarget = null;
+    }
+
+    function confirmAdminCancel() {
+      const b = state.cancelTarget;
+      if (!b) return;
+
+      const reason = document.getElementById('cancelReason').value.trim();
+      const alertEl = document.getElementById('cancelAlert');
+      alertEl.className = 'alert';
+
+      google.script.run
+        .withSuccessHandler(res => {
+          if (res.success) {
+            closeCancelModal();
+            showToast('تم إلغاء الحجز بنجاح', 'success');
+            loadWeek();
+
+            setTimeout(() => {
+              if (confirm('هل تريد إرسال إشعار الإلغاء عبر واتساب؟')) {
+                state.cancelTarget = b;
+                openWhatsAppModal('cancel');
+              }
+            }, 400);
+          } else {
+            alertEl.className = 'alert alert-error show';
+            alertEl.textContent = res.message || 'فشل الإلغاء';
+          }
+        })
+        .withFailureHandler(err => {
+          alertEl.className = 'alert alert-error show';
+          alertEl.textContent = 'حدث خطأ: ' + err.message;
+        })
+        .adminCancelBooking(b.id, reason, state.user.username || 'admin');
+    }
+
+    /***********************************************
+     * لوحة الإدارة
+     ***********************************************/
+    function loadDashboard() {
+      document.getElementById('dashLoading').classList.add('show');
+      document.getElementById('dashContent').style.display = 'none';
+
+      google.script.run
+        .withSuccessHandler(res => {
+          document.getElementById('dashLoading').classList.remove('show');
+
+          if (!res.success) {
+            showToast(res.message || 'فشل تحميل الإحصائيات', 'error');
+            return;
+          }
+          renderDashboard(res);
+        })
+        .withFailureHandler(err => {
+          document.getElementById('dashLoading').classList.remove('show');
+          showToast('حدث خطأ: ' + err.message, 'error');
+        })
+        .getAdminDashboard();
+    }
+
+    function renderDashboard(data) {
+      document.getElementById('dashContent').style.display = 'block';
+
+      const s = data.stats;
+
+      document.getElementById('statsGrid').innerHTML =
+        '<div class="stat-card"><div class="stat-label">إجمالي الحجوزات</div><div class="stat-value">' + s.totalBookings + '</div></div>' +
+        '<div class="stat-card green"><div class="stat-label">حجوزات اليوم</div><div class="stat-value">' + s.todayBookings + '</div></div>' +
+        '<div class="stat-card orange"><div class="stat-label">حجوزات هذا الأسبوع</div><div class="stat-value">' + s.thisWeekBookings + '</div></div>' +
+        '<div class="stat-card purple"><div class="stat-label">عدد المعلمين</div><div class="stat-value">' + s.uniqueTeachers + '</div></div>' +
+        '<div class="stat-card"><div class="stat-label">عدد المواد</div><div class="stat-value">' + s.uniqueSubjects + '</div></div>';
+
+      document.getElementById('todayDate').textContent = '— ' + formatArabicDate(data.today);
+
+      const todayTable = document.getElementById('todayTable');
+      if (data.todayList.length === 0) {
+        todayTable.innerHTML = '<div class="empty-state"><div class="icon">📭</div>لا توجد حجوزات اليوم</div>';
+      } else {
+        let html = '<div style="overflow-x:auto;"><table class="data-table"><thead><tr>' +
+          '<th>الحصة</th><th>المعلم</th><th>الصف</th><th>المادة</th><th>الدرس</th><th>الاحتياجات</th>' +
+          '</tr></thead><tbody>';
+        data.todayList.forEach(b => {
+          html += '<tr>' +
+            '<td><span class="badge badge-period">ح' + b.period + '</span></td>' +
+            '<td><strong>' + escapeHtml(b.teacher) + '</strong></td>' +
+            '<td>' + escapeHtml(b.grade || '—') + '</td>' +
+            '<td>' + escapeHtml(b.subject || '—') + '</td>' +
+            '<td>' + escapeHtml(b.lesson || '—') + '</td>' +
+            '<td style="font-size:.8rem;color:var(--gray-500);">' + escapeHtml(b.needs || '—') + '</td>' +
+            '</tr>';
+        });
+        html += '</tbody></table></div>';
+        todayTable.innerHTML = html;
+      }
+
+      const topTeachers = document.getElementById('topTeachers');
+      if (s.topTeachers.length === 0) {
+        topTeachers.innerHTML = '<div class="empty-state">لا توجد بيانات</div>';
+      } else {
+        topTeachers.innerHTML = s.topTeachers.map(t =>
+          '<div class="top-item"><span class="name">' + escapeHtml(t.name) + '</span>' +
+          '<span class="count">' + t.count + ' حجز</span></div>'
+        ).join('');
+      }
+
+      const topSubjects = document.getElementById('topSubjects');
+      if (s.topSubjects.length === 0) {
+        topSubjects.innerHTML = '<div class="empty-state">لا توجد بيانات</div>';
+      } else {
+        topSubjects.innerHTML = s.topSubjects.map(t =>
+          '<div class="top-item"><span class="name">' + escapeHtml(t.name) + '</span>' +
+          '<span class="count">' + t.count + ' حجز</span></div>'
+        ).join('');
+      }
+    }
+
+    function adminDeleteWeekPrompt() {
+      const weekStr = formatArabicDate(formatDate(state.weekStart)) + ' — ' +
+                      formatArabicDate(formatDate(
+                        new Date(state.weekStart.getTime() + 4 * 24 * 60 * 60 * 1000)
+                      ));
+
+      if (!confirm('⚠️ تحذير!\n\nسيتم حذف كل حجوزات الأسبوع:\n' + weekStr +
+                   '\n\nهذا الإجراء لا يمكن التراجع عنه!\n\nهل أنت متأكد؟')) return;
+
+      if (!confirm('تأكيد نهائي: اضغط موافق لحذف جميع حجوزات الأسبوع.')) return;
+
+      const startStr = formatDate(state.weekStart);
+
+      google.script.run
+        .withSuccessHandler(res => {
+          if (res.success) {
+            showToast(res.message || 'تم الحذف', 'success');
+            loadDashboard();
+          } else {
+            showToast(res.message || 'فشل الحذف', 'error');
+          }
+        })
+        .withFailureHandler(err => showToast('حدث خطأ: ' + err.message, 'error'))
+        .adminDeleteWeek(startStr, state.user.username || 'admin');
+    }
+
+    /***********************************************
+     * سجل التعديلات
+     ***********************************************/
+    function loadAuditLog() {
+      document.getElementById('auditLoading').classList.add('show');
+      document.getElementById('auditContent').style.display = 'none';
+
+      google.script.run
+        .withSuccessHandler(res => {
+          document.getElementById('auditLoading').classList.remove('show');
+          document.getElementById('auditContent').style.display = 'block';
+
+          if (!res.success) {
+            document.getElementById('auditBody').innerHTML =
+              '<tr><td colspan="6" style="text-align:center;color:var(--danger);padding:2rem;">' +
+              escapeHtml(res.message || 'فشل التحميل') + '</td></tr>';
+            return;
+          }
+
+          const logs = res.logs || [];
+          if (logs.length === 0) {
+            document.getElementById('auditBody').innerHTML =
+              '<tr><td colspan="6" style="text-align:center;color:var(--gray-500);padding:2rem;">لا توجد عمليات مسجّلة بعد</td></tr>';
+            return;
+          }
+
+          let html = '';
+          logs.forEach(log => {
+            let badgeClass = 'badge-update';
+            let badgeText = log.action;
+            if (log.action === 'CREATE') { badgeClass = 'badge-create'; badgeText = '➕ إنشاء'; }
+            else if (log.action === 'DELETE') { badgeClass = 'badge-delete'; badgeText = '🗑️ حذف (معلم)'; }
+            else if (log.action === 'UPDATE_TEACHER') { badgeClass = 'badge-update'; badgeText = '✏️ تعديل (معلم)'; }
+            else if (log.action === 'UPDATE_ADMIN') { badgeClass = 'badge-update'; badgeText = '✏️ تعديل (مدير)'; }
+            else if (log.action === 'ADMIN_CANCEL') { badgeClass = 'badge-cancel'; badgeText = '🚫 إلغاء (مدير)'; }
+            else if (log.action === 'ADMIN_DELETE_WEEK') { badgeClass = 'badge-delete'; badgeText = '🗑️ حذف أسبوع'; }
+
+            const roleText = log.actorRole === 'teacher' ? 'معلم' :
+                             log.actorRole === 'admin' ? 'مدير' : log.actorRole;
+
+            html += '<tr>' +
+              '<td style="white-space:nowrap;font-size:.8rem;">' + escapeHtml(log.timestamp) + '</td>' +
+              '<td><span class="badge ' + badgeClass + '">' + badgeText + '</span></td>' +
+              '<td>' + escapeHtml(log.actor) + '</td>' +
+              '<td>' + escapeHtml(roleText) + '</td>' +
+              '<td style="white-space:nowrap;">' +
+                (log.date ? formatArabicDate(log.date) + (log.period ? ' — ح' + log.period : '') : '—') +
+              '</td>' +
+              '<td style="font-size:.8rem;line-height:1.5;">' + escapeHtml(log.details || '—') + '</td>' +
+              '</tr>';
+          });
+          document.getElementById('auditBody').innerHTML = html;
+        })
+        .withFailureHandler(err => {
+          document.getElementById('auditLoading').classList.remove('show');
+          document.getElementById('auditContent').style.display = 'block';
+          document.getElementById('auditBody').innerHTML =
+            '<tr><td colspan="6" style="text-align:center;color:var(--danger);padding:2rem;">' +
+            escapeHtml('حدث خطأ: ' + err.message) + '</td></tr>';
+        })
+        .getAuditLog(100);
+    }
+
+    /***********************************************
+     * التقارير
+     ***********************************************/
+    function setReportType(type) {
+      state.reportType = type;
+      document.getElementById('reportTypeWeekly').className =
+        'btn ' + (type === 'weekly' ? 'btn-primary' : 'btn-secondary') + ' btn-sm';
+      document.getElementById('reportTypeMonthly').className =
+        'btn ' + (type === 'monthly' ? 'btn-primary' : 'btn-secondary') + ' btn-sm';
+
+      document.getElementById('weeklySelector').style.display  = type === 'weekly'  ? 'block' : 'none';
+      document.getElementById('monthlySelector').style.display = type === 'monthly' ? 'block' : 'none';
+
+      document.getElementById('reportOutput').style.display = 'none';
+    }
+
+    function initReportDefaults() {
+      const sunday = getSunday(new Date());
+      document.getElementById('reportWeekDate').value = formatDate(sunday);
+
+      const now = new Date();
+      document.getElementById('reportMonth').value = now.getMonth() + 1;
+      document.getElementById('reportYear').value = now.getFullYear();
+    }
+
+    function shiftReportWeek(delta) {
+      const cur = document.getElementById('reportWeekDate').value;
+      const d = cur ? new Date(cur + 'T00:00:00') : getSunday(new Date());
+      d.setDate(d.getDate() + delta * 7);
+      document.getElementById('reportWeekDate').value = formatDate(getSunday(d));
+      onReportWeekChange();
+    }
+
+    function setReportToday() {
+      document.getElementById('reportWeekDate').value = formatDate(getSunday(new Date()));
+      onReportWeekChange();
+    }
+
+    function onReportWeekChange() { document.getElementById('reportOutput').style.display = 'none'; }
+    function onReportMonthChange() { document.getElementById('reportOutput').style.display = 'none'; }
+
+    function loadReport() {
+      const loading = document.getElementById('reportLoading');
+      const output = document.getElementById('reportOutput');
+
+      loading.classList.add('show');
+      output.style.display = 'none';
+
+      if (state.reportType === 'weekly') {
+        const weekDate = document.getElementById('reportWeekDate').value;
+        if (!weekDate) {
+          loading.classList.remove('show');
+          showToast('يرجى اختيار تاريخ الأسبوع', 'error');
+          return;
+        }
+
+        const sunday = getSunday(new Date(weekDate + 'T00:00:00'));
+        const startStr = formatDate(sunday);
+
+        google.script.run
+          .withSuccessHandler(res => {
+            loading.classList.remove('show');
+            if (!res.success) {
+              showToast(res.message || 'فشل التقرير', 'error');
+              return;
+            }
+            state.reportData = res;
+            state.reportMeta = { type: 'weekly', startDate: res.startDate };
+            renderWeeklyReport(res);
+            output.style.display = 'block';
+          })
+          .withFailureHandler(err => {
+            loading.classList.remove('show');
+            showToast('حدث خطأ: ' + err.message, 'error');
+          })
+          .getWeeklyReport(startStr);
+
+      } else {
+        const month = Number(document.getElementById('reportMonth').value);
+        const year = Number(document.getElementById('reportYear').value);
+
+        if (!month || !year) {
+          loading.classList.remove('show');
+          showToast('يرجى اختيار الشهر والسنة', 'error');
+          return;
+        }
+
+        google.script.run
+          .withSuccessHandler(res => {
+            loading.classList.remove('show');
+            if (!res.success) {
+              showToast(res.message || 'فشل التقرير', 'error');
+              return;
+            }
+            state.reportData = res;
+            state.reportMeta = { type: 'monthly', year: year, month: month };
+            renderMonthlyReport(res);
+            output.style.display = 'block';
+          })
+          .withFailureHandler(err => {
+            loading.classList.remove('show');
+            showToast('حدث خطأ: ' + err.message, 'error');
+          })
+          .getMonthlyReport(year, month);
+      }
+    }
+
+    function renderReportHeader(title, periodText) {
+      const schoolName = document.getElementById('appSubtitle').textContent ||
+                         'مدرسة أبو الدرداء للتعليم الأساسي للبنين ٥-١٢';
+      return '' +
+        '<div class="report-header">' +
+          '<p class="school-name">' + escapeHtml(schoolName) + '</p>' +
+          '<p class="report-title">' + title + '</p>' +
+          '<p class="report-period">' + periodText + '</p>' +
+        '</div>';
+    }
+
+    function renderWeeklyReport(res) {
+      const paper = document.getElementById('reportPaper');
+      const periodText = 'الأسبوع من ' + formatArabicDate(res.startDate) +
+                         ' إلى ' + formatArabicDate(res.endDate);
+
+      let html = renderReportHeader('📅 تقرير الحجوزات الأسبوعي', periodText);
+
+      html += '<div class="report-summary-grid">' +
+        '<div class="report-summary-card"><div class="label">إجمالي الحجوزات</div><div class="value">' + res.totalBookings + '</div></div>' +
+        '<div class="report-summary-card"><div class="label">عدد المعلمين</div><div class="value">' + res.uniqueTeachers + '</div></div>' +
+        '<div class="report-summary-card"><div class="label">عدد المواد</div><div class="value">' + res.uniqueSubjects + '</div></div>' +
+      '</div>';
+
+      html += '<h4 class="report-subsection-title">📋 جدول الأسبوع</h4>';
+      html += '<table class="report-table"><thead><tr><th style="width:70px;">الحصة</th>';
+      res.days.forEach(d => {
+        html += '<th>' + escapeHtml(d.day) + '<br><small style="font-weight:400;">' +
+                formatArabicDate(d.date) + '</small></th>';
+      });
+      html += '</tr></thead><tbody>';
+
+      for (let p = 1; p <= 8; p++) {
+        html += '<tr><td style="background:#f3f4f6;font-weight:700;text-align:center;">ح' + p + '</td>';
+        res.days.forEach(d => {
+          const dayBookings = res.byDay[d.date] || [];
+          const b = dayBookings.find(x => x.period === p);
+          if (b) {
+            html += '<td style="font-size:.78rem;line-height:1.4;">' +
+              '<strong style="color:#1d4ed8;">' + escapeHtml(b.teacher) + '</strong><br>' +
+              '<span style="color:#6b7280;">' + escapeHtml(b.subject || '—') + '</span>' +
+              (b.grade ? '<br><span style="font-size:.72rem;color:#9ca3af;">' + escapeHtml(b.grade) + '</span>' : '') +
+              '</td>';
+          } else {
+            html += '<td style="text-align:center;color:#d1d5db;">—</td>';
+          }
+        });
+        html += '</tr>';
+      }
+      html += '</tbody></table>';
+
+      if (res.topTeachers.length > 0) {
+        html += '<h4 class="report-subsection-title">👨‍🏫 حجوزات المعلمين</h4>';
+        html += '<table class="report-table"><thead><tr>' +
+                '<th style="width:50px;">#</th><th>المعلم</th><th style="width:100px;">عدد الحجوزات</th>' +
+                '</tr></thead><tbody>';
+        res.topTeachers.forEach((t, i) => {
+          html += '<tr><td>' + (i + 1) + '</td><td>' + escapeHtml(t.name) + '</td>' +
+                  '<td style="text-align:center;font-weight:700;">' + t.count + '</td></tr>';
+        });
+        html += '</tbody></table>';
+      }
+
+      if (res.topSubjects.length > 0) {
+        html += '<h4 class="report-subsection-title">📚 حجوزات المواد</h4>';
+        html += '<table class="report-table"><thead><tr>' +
+                '<th style="width:50px;">#</th><th>المادة</th><th style="width:100px;">عدد الحجوزات</th>' +
+                '</tr></thead><tbody>';
+        res.topSubjects.forEach((t, i) => {
+          html += '<tr><td>' + (i + 1) + '</td><td>' + escapeHtml(t.name || '—') + '</td>' +
+                  '<td style="text-align:center;font-weight:700;">' + t.count + '</td></tr>';
+        });
+        html += '</tbody></table>';
+      }
+
+      html += '<div class="report-signature"><div>مدير المدرسة</div><div class="line"></div></div>';
+      html += '<div class="report-footer">' +
+        '<span>تاريخ الطباعة: ' + formatArabicDate(formatDate(new Date())) + '</span>' +
+        '<span>نظام حجز قاعة المصادر التعليمية</span></div>';
+
+      paper.innerHTML = html;
+    }
+
+    function renderMonthlyReport(res) {
+      const paper = document.getElementById('reportPaper');
+      const monthName = MONTH_NAMES_AR[res.month - 1] || '';
+      const periodText = 'شهر ' + monthName + ' ' + res.year +
+                         '  (' + formatArabicDate(res.startDate) + ' — ' + formatArabicDate(res.endDate) + ')';
+
+      let html = renderReportHeader('📊 تقرير الحجوزات الشهري', periodText);
+
+      html += '<div class="report-summary-grid">' +
+        '<div class="report-summary-card"><div class="label">إجمالي الحجوزات</div><div class="value">' + res.totalBookings + '</div></div>' +
+        '<div class="report-summary-card"><div class="label">عدد المعلمين</div><div class="value">' + res.uniqueTeachers + '</div></div>' +
+        '<div class="report-summary-card"><div class="label">عدد المواد</div><div class="value">' + res.uniqueSubjects + '</div></div>' +
+        '<div class="report-summary-card"><div class="label">عدد الصفوف</div><div class="value">' + res.uniqueGrades + '</div></div>' +
+        '<div class="report-summary-card"><div class="label">المتوسط اليومي</div><div class="value">' + res.avgPerDay + '</div></div>' +
+      '</div>';
+
+      if (res.topTeachers.length > 0) {
+        html += '<h4 class="report-subsection-title">👨‍🏫 حجوزات المعلمين</h4>';
+        html += '<table class="report-table"><thead><tr>' +
+                '<th style="width:50px;">#</th><th>المعلم</th><th style="width:100px;">عدد الحجوزات</th>' +
+                '<th style="width:100px;">النسبة</th></tr></thead><tbody>';
+        res.topTeachers.forEach((t, i) => {
+          const pct = res.totalBookings > 0 ? ((t.count / res.totalBookings) * 100).toFixed(1) + '%' : '0%';
+          html += '<tr><td>' + (i + 1) + '</td><td>' + escapeHtml(t.name) + '</td>' +
+                  '<td style="text-align:center;font-weight:700;">' + t.count + '</td>' +
+                  '<td style="text-align:center;color:#6b7280;">' + pct + '</td></tr>';
+        });
+        html += '</tbody></table>';
+      }
+
+      if (res.topSubjects.length > 0) {
+        html += '<h4 class="report-subsection-title">📚 حجوزات المواد</h4>';
+        html += '<table class="report-table"><thead><tr>' +
+                '<th style="width:50px;">#</th><th>المادة</th><th style="width:100px;">عدد الحجوزات</th>' +
+                '<th style="width:100px;">النسبة</th></tr></thead><tbody>';
+        res.topSubjects.forEach((t, i) => {
+          const pct = res.totalBookings > 0 ? ((t.count / res.totalBookings) * 100).toFixed(1) + '%' : '0%';
+          html += '<tr><td>' + (i + 1) + '</td><td>' + escapeHtml(t.name || '—') + '</td>' +
+                  '<td style="text-align:center;font-weight:700;">' + t.count + '</td>' +
+                  '<td style="text-align:center;color:#6b7280;">' + pct + '</td></tr>';
+        });
+        html += '</tbody></table>';
+      }
+
+      if (res.byGrade.length > 0) {
+        html += '<h4 class="report-subsection-title">🎓 حجوزات الصفوف</h4>';
+        html += '<table class="report-table"><thead><tr>' +
+                '<th style="width:50px;">#</th><th>الصف/الشعبة</th><th style="width:100px;">عدد الحجوزات</th>' +
+                '</tr></thead><tbody>';
+        res.byGrade.forEach((g, i) => {
+          html += '<tr><td>' + (i + 1) + '</td><td>' + escapeHtml(g.name || '—') + '</td>' +
+                  '<td style="text-align:center;font-weight:700;">' + g.count + '</td></tr>';
+        });
+        html += '</tbody></table>';
+      }
+
+      html += '<h4 class="report-subsection-title">⏰ توزيع الحجوزات على الحصص</h4>';
+      html += '<table class="report-table"><thead><tr><th>الحصة</th>';
+      for (let p = 1; p <= 8; p++) html += '<th style="text-align:center;">ح' + p + '</th>';
+      html += '</tr></thead><tbody><tr><td style="background:#f3f4f6;font-weight:700;">عدد الحجوزات</td>';
+      res.byPeriod.forEach(p => {
+        html += '<td style="text-align:center;font-weight:700;color:#1d4ed8;">' + p.count + '</td>';
+      });
+      html += '</tr></tbody></table>';
+
+      html += '<div class="report-signature"><div>مدير المدرسة</div><div class="line"></div></div>';
+      html += '<div class="report-footer">' +
+        '<span>تاريخ الطباعة: ' + formatArabicDate(formatDate(new Date())) + '</span>' +
+        '<span>نظام حجز قاعة المصادر التعليمية</span></div>';
+
+      paper.innerHTML = html;
+    }
+
+    /***********************************************
+     * الطباعة
+     ***********************************************/
+    function printReport() {
+      if (!state.reportData) {
+        showToast('يرجى عرض التقرير أولًا', 'warning');
+        return;
+      }
+      document.body.classList.add('printing-report');
+      window.print();
+      setTimeout(() => document.body.classList.remove('printing-report'), 1000);
+    }
+
+    function printDashboard() {
+      if (state.currentTab !== 'dashboard') switchMainTab('dashboard');
+
+      setTimeout(() => {
+        document.body.classList.add('printing-dashboard');
+        window.print();
+        setTimeout(() => document.body.classList.remove('printing-dashboard'), 1000);
+      }, 800);
+    }
+
+    /***********************************************
+     * تصدير Excel
+     ***********************************************/
+    function exportReportToExcel() {
+      if (!state.reportData) {
+        showToast('يرجى عرض التقرير أولًا', 'warning');
+        return;
+      }
+
+      let csv = '';
+      const BOM = '\uFEFF';
+      const schoolName = document.getElementById('appSubtitle').textContent || '';
+
+      csv += '"' + schoolName + '"\n';
+
+      if (state.reportMeta.type === 'weekly') {
+        csv += '"تقرير الحجوزات الأسبوعي"\n';
+        csv += '"من ' + state.reportData.startDate + ' إلى ' + state.reportData.endDate + '"\n\n';
+        csv += '"الملخص"\n';
+        csv += '"إجمالي الحجوزات","' + state.reportData.totalBookings + '"\n';
+        csv += '"عدد المعلمين","' + state.reportData.uniqueTeachers + '"\n';
+        csv += '"عدد المواد","' + state.reportData.uniqueSubjects + '"\n\n';
+        csv += '"التاريخ","اليوم","الحصة","المعلم","الصف","المادة","الدرس","الاحتياجات"\n';
+        state.reportData.bookings.forEach(b => {
+          csv += '"' + b.date + '","' + (b.day || '') + '","' + b.period + '","' +
+                 csvEscape(b.teacher) + '","' + csvEscape(b.grade) + '","' +
+                 csvEscape(b.subject) + '","' + csvEscape(b.lesson) + '","' +
+                 csvEscape(b.needs) + '"\n';
+        });
+      } else {
+        const monthName = MONTH_NAMES_AR[state.reportData.month - 1];
+        csv += '"تقرير الحجوزات الشهري — ' + monthName + ' ' + state.reportData.year + '"\n\n';
+        csv += '"الملخص"\n';
+        csv += '"إجمالي الحجوزات","' + state.reportData.totalBookings + '"\n';
+        csv += '"عدد المعلمين","' + state.reportData.uniqueTeachers + '"\n';
+        csv += '"عدد المواد","' + state.reportData.uniqueSubjects + '"\n';
+        csv += '"عدد الصفوف","' + state.reportData.uniqueGrades + '"\n';
+        csv += '"المتوسط اليومي","' + state.reportData.avgPerDay + '"\n\n';
+        csv += '"التاريخ","اليوم","الحصة","المعلم","الصف","المادة","الدرس","الاحتياجات"\n';
+        state.reportData.bookings.forEach(b => {
+          csv += '"' + b.date + '","' + (b.day || '') + '","' + b.period + '","' +
+                 csvEscape(b.teacher) + '","' + csvEscape(b.grade) + '","' +
+                 csvEscape(b.subject) + '","' + csvEscape(b.lesson) + '","' +
+                 csvEscape(b.needs) + '"\n';
+        });
+
+        csv += '\n"إحصائيات المعلمين"\n"المعلم","عدد الحجوزات"\n';
+        state.reportData.topTeachers.forEach(t => csv += '"' + csvEscape(t.name) + '","' + t.count + '"\n');
+
+        csv += '\n"إحصائيات المواد"\n"المادة","عدد الحجوزات"\n';
+        state.reportData.topSubjects.forEach(t => csv += '"' + csvEscape(t.name) + '","' + t.count + '"\n');
+
+        csv += '\n"إحصائيات الصفوف"\n"الصف","عدد الحجوزات"\n';
+        state.reportData.byGrade.forEach(g => csv += '"' + csvEscape(g.name) + '","' + g.count + '"\n');
+      }
+
+      const fileName = state.reportMeta.type === 'weekly'
+        ? 'تقرير_أسبوعي_' + state.reportData.startDate + '.csv'
+        : 'تقرير_شهري_' + state.reportData.year + '_' + pad2(state.reportData.month) + '.csv';
+
+      const blob = new Blob([BOM + csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      showToast('تم تصدير الملف بنجاح', 'success');
+    }
+
+    function csvEscape(str) {
+      return String(str == null ? '' : str).replace(/"/g, '""').replace(/\n/g, ' ');
+    }
+
+    /***********************************************
+     * إغلاق النوافذ
+     ***********************************************/
+    ['bookingModal', 'cancelModal', 'successModal', 'cancelTeacherModal', 'whatsappModal'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.addEventListener('click', function(e) {
+          if (e.target === this) {
+            if (id === 'bookingModal') closeBookingModal();
+            if (id === 'cancelModal') closeCancelModal();
+            if (id === 'successModal') closeSuccessModal();
+            if (id === 'cancelTeacherModal') closeCancelTeacherModal();
+            if (id === 'whatsappModal') closeWhatsAppModal();
+          }
+        });
+      }
+    });
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        closeBookingModal();
+        closeCancelModal();
+        closeSuccessModal();
+        closeCancelTeacherModal();
+        closeWhatsAppModal();
+      }
+    });
+
+    /***********************************************
+     * 🔄 إعادة تعيين الحالة عند إغلاق الصفحة
+     * 
+     * لا نحفظ جلسة في localStorage — لذا عند فتح
+     * الصفحة مرة أخرى، يبدأ المستخدم من شاشة الدخول.
+     ***********************************************/
+    window.addEventListener('pagehide', function() {
+      // تنظيف الحالة عند مغادرة الصفحة
+      state.user = null;
+      state.bookings = [];
+    });
+
+    /***********************************************
+     * التهيئة
+     ***********************************************/
+    initTheme();
+  </script>
+</body>
+</html>
