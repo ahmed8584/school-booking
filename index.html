@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>حجز قاعة المصادر التعليمية</title>
+  <meta name="author" content="أ.أحمد اليعقوبي">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -121,8 +122,8 @@
     .alert-success { background: var(--success-light); color: #166534; }
     .alert-warning { background: var(--warning-light); color: #92400e; }
 
-    .app { display: none; min-height: 100vh; }
-    .app.show { display: block; }
+    .app { display: none; min-height: 100vh; flex-direction: column; }
+    .app.show { display: flex; }
     .app-header { background: var(--card-bg); box-shadow: var(--shadow-sm);
       padding: 1rem 1.5rem; position: sticky; top: 0; z-index: 100; }
     .header-content { max-width: 1200px; margin: 0 auto; display: flex;
@@ -140,7 +141,8 @@
       transition: transform .2s, background .2s; }
     .theme-toggle:hover { transform: scale(1.1); background: var(--gray-200); }
 
-    .container { max-width: 1200px; margin: 0 auto; padding: 1.5rem; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 1.5rem;
+      width: 100%; flex: 1; }
     .main-tabs { display: flex; gap: .5rem; background: var(--card-bg);
       padding: .5rem; border-radius: var(--radius); box-shadow: var(--shadow-sm);
       margin-bottom: 1.25rem; overflow-x: auto; }
@@ -299,6 +301,8 @@
     .report-header .report-title { font-size: 1.1rem; font-weight: 700;
       color: #374151; margin: .35rem 0 0; }
     .report-header .report-period { color: #6b7280; font-size: .9rem; margin: .35rem 0 0; }
+    .report-header .report-author { color: #2563eb; font-weight: 700;
+      font-size: .85rem; margin: .35rem 0 0; }
     .report-summary-grid { display: grid;
       grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
       gap: .65rem; margin-bottom: 1.5rem; }
@@ -324,10 +328,28 @@
     .report-signature .line { display: inline-block; min-width: 200px;
       border-bottom: 1px solid #6b7280; margin-top: 2rem; padding-bottom: .25rem; }
 
+    /* ============ Footer ============ */
+    .app-footer {
+      text-align: center;
+      padding: 1.5rem 1rem 2rem;
+      margin-top: auto;
+      color: var(--gray-500);
+      font-size: .85rem;
+      border-top: 1px solid var(--gray-200);
+      background: var(--card-bg);
+    }
+    .app-footer p { margin: .3rem 0; }
+    .app-footer .footer-author {
+      color: var(--primary);
+      font-weight: 800;
+      font-size: .95rem;
+    }
+    body.dark-mode .app-footer .footer-author { color: #93c5fd; }
+
     @media print {
       body { background: #fff !important; }
       .app-header, .main-tabs, .toolbar, .no-print, .modal-overlay,
-      #loginScreen, .loading, .toast-container { display: none !important; }
+      #loginScreen, .loading, .toast-container, .app-footer { display: none !important; }
       .container { padding: 0 !important; max-width: 100% !important; }
       .report-paper { box-shadow: none !important; padding: 0 !important;
         margin: 0 !important; border-radius: 0 !important; max-width: 100% !important; }
@@ -558,6 +580,11 @@
         </div>
       </div>
     </main>
+
+    <!-- ═══ Footer — أسفل الواجهة فقط ═══ -->
+    <footer class="app-footer no-print">
+      <p class="footer-author">إعداد: أ.أحمد اليعقوبي</p>
+    </footer>
   </div>
 
   <!-- نافذة الحجز -->
@@ -691,7 +718,43 @@
     const API_KEY = 'SCHOOL_BOOKING_SECRET_2026_XYZ';
 
     /***********************************************
-     * 🌐 دالة الاتصال بـ Apps Script عبر fetch
+     * ⚡ Cache في المتصفح
+     ***********************************************/
+    const CLIENT_CACHE_PREFIX = 'sb_cache_';
+
+    function clientCacheGet(key) {
+      try {
+        const raw = localStorage.getItem(CLIENT_CACHE_PREFIX + key);
+        if (!raw) return null;
+        const data = JSON.parse(raw);
+        if (data.expires && data.expires < Date.now()) {
+          localStorage.removeItem(CLIENT_CACHE_PREFIX + key);
+          return null;
+        }
+        return data.value;
+      } catch (e) { return null; }
+    }
+
+    function clientCachePut(key, value, seconds) {
+      try {
+        localStorage.setItem(CLIENT_CACHE_PREFIX + key, JSON.stringify({
+          value: value,
+          expires: Date.now() + (seconds * 1000)
+        }));
+      } catch (e) {}
+    }
+
+    function clientCacheClear() {
+      try {
+        const keys = Object.keys(localStorage);
+        keys.forEach(k => {
+          if (k.startsWith(CLIENT_CACHE_PREFIX)) localStorage.removeItem(k);
+        });
+      } catch (e) {}
+    }
+
+    /***********************************************
+     * 🌐 دالة الاتصال
      ***********************************************/
     function callAPI(action, params) {
       params = params || [];
@@ -724,7 +787,7 @@
           if (match) {
             return JSON.parse(match[1]);
           }
-          throw new Error('استجابة غير صالحة: ' + text.substring(0, 100));
+          throw new Error('استجابة غير صالحة');
         }
       });
     }
@@ -917,9 +980,20 @@
     function goToday() { state.weekStart = getSunday(new Date()); loadWeek(); }
 
     function loadWeek() {
+      const startStr = formatDate(state.weekStart);
+      const cacheKey = 'week_' + startStr;
+
+      const cached = clientCacheGet(cacheKey);
+      if (cached) {
+        state.bookings = cached.bookings || [];
+        document.getElementById('weekInfo').textContent =
+          'من ' + formatArabicDate(cached.startDate) + ' إلى ' + formatArabicDate(cached.endDate);
+        renderSchedule();
+        return;
+      }
+
       document.getElementById('loading').classList.add('show');
       document.getElementById('scheduleWrapper').style.display = 'none';
-      const startStr = formatDate(state.weekStart);
 
       callAPI('getWeekBookings', [startStr])
         .then(res => {
@@ -930,6 +1004,7 @@
           document.getElementById('weekInfo').textContent =
             'من ' + formatArabicDate(res.startDate) + ' إلى ' + formatArabicDate(res.endDate);
           renderSchedule();
+          clientCachePut(cacheKey, res, 120);
         })
         .catch(err => {
           document.getElementById('loading').classList.remove('show');
@@ -1111,6 +1186,7 @@
           closeBookingModal();
           if (!id) showBookingSuccess(data, res.bookingId);
           else showToast(res.message || 'تم الحفظ', 'success');
+          clientCacheClear();
           loadWeek();
         } else {
           showModalAlert(res.message || 'فشل الحفظ', res.conflict ? 'warning' : 'error');
@@ -1133,6 +1209,7 @@
           if (res.success) {
             closeBookingModal();
             showToast(res.message || 'تم التحديث', 'success');
+            clientCacheClear();
             loadWeek();
           } else {
             showModalAlert(res.message || 'فشل', 'error');
@@ -1200,7 +1277,7 @@
       if (data.subject) msg += '📚 *المادة:* ' + data.subject + '\n';
       if (data.lesson)  msg += '📖 *الدرس:* ' + data.lesson + '\n';
       if (data.needs)   msg += '🛠️ *الاحتياجات:* ' + data.needs + '\n';
-      msg += '━━━━━━━━━━━━━━━━━━\n🤖 من نظام حجز قاعة المصادر';
+      msg += '━━━━━━━━━━━━━━━━━━';
       return msg;
     }
 
@@ -1215,7 +1292,7 @@
       if (data.subject) msg += '📚 *المادة:* ' + data.subject + '\n';
       if (data.lesson)  msg += '📖 *الدرس:* ' + data.lesson + '\n';
       if (reason)       msg += '📝 *سبب الإلغاء:* ' + reason + '\n';
-      msg += '━━━━━━━━━━━━━━━━━━\n🤖 من نظام حجز قاعة المصادر';
+      msg += '━━━━━━━━━━━━━━━━━━';
       return msg;
     }
 
@@ -1279,6 +1356,7 @@
           if (res.success) {
             closeCancelTeacherModal();
             showToast('تم إلغاء الحجز بنجاح', 'success');
+            clientCacheClear();
             loadWeek();
           } else {
             showToast(res.message || 'فشل', 'error');
@@ -1318,6 +1396,7 @@
           if (res.success) {
             closeCancelModal();
             showToast('تم إلغاء الحجز', 'success');
+            clientCacheClear();
             loadWeek();
             setTimeout(() => {
               if (confirm('هل تريد إرسال إشعار الإلغاء عبر واتساب؟')) {
@@ -1337,6 +1416,13 @@
     }
 
     function loadDashboard() {
+      const cacheKey = 'dashboard';
+      const cached = clientCacheGet(cacheKey);
+      if (cached) {
+        renderDashboard(cached);
+        return;
+      }
+
       document.getElementById('dashLoading').classList.add('show');
       document.getElementById('dashContent').style.display = 'none';
       callAPI('getAdminDashboard', [])
@@ -1344,6 +1430,7 @@
           document.getElementById('dashLoading').classList.remove('show');
           if (!res.success) { showToast(res.message || 'فشل', 'error'); return; }
           renderDashboard(res);
+          clientCachePut(cacheKey, res, 120);
         })
         .catch(err => {
           document.getElementById('dashLoading').classList.remove('show');
@@ -1387,13 +1474,24 @@
       if (!confirm('تأكيد نهائي؟')) return;
       callAPI('adminDeleteWeek', [formatDate(state.weekStart), state.user.username || 'admin'])
         .then(res => {
-          if (res.success) { showToast(res.message || 'تم الحذف', 'success'); loadDashboard(); }
+          if (res.success) {
+            showToast(res.message || 'تم الحذف', 'success');
+            clientCacheClear();
+            loadDashboard();
+          }
           else showToast(res.message || 'فشل', 'error');
         })
         .catch(err => showToast('خطأ: ' + err.message, 'error'));
     }
 
     function loadAuditLog() {
+      const cacheKey = 'audit';
+      const cached = clientCacheGet(cacheKey);
+      if (cached) {
+        renderAuditLog(cached);
+        return;
+      }
+
       document.getElementById('auditLoading').classList.add('show');
       document.getElementById('auditContent').style.display = 'none';
       callAPI('getAuditLog', [100])
@@ -1405,30 +1503,8 @@
               '<tr><td colspan="6" style="text-align:center;color:var(--danger);padding:2rem;">' + escapeHtml(res.message || 'فشل') + '</td></tr>';
             return;
           }
-          const logs = res.logs || [];
-          if (logs.length === 0) {
-            document.getElementById('auditBody').innerHTML =
-              '<tr><td colspan="6" style="text-align:center;color:var(--gray-500);padding:2rem;">لا توجد عمليات</td></tr>';
-            return;
-          }
-          let html = '';
-          logs.forEach(log => {
-            let bc = 'badge-update', bt = log.action;
-            if (log.action === 'CREATE') { bc = 'badge-create'; bt = '➕ إنشاء'; }
-            else if (log.action === 'DELETE') { bc = 'badge-delete'; bt = '🗑️ حذف'; }
-            else if (log.action === 'UPDATE_TEACHER') { bc = 'badge-update'; bt = '✏️ تعديل (معلم)'; }
-            else if (log.action === 'UPDATE_ADMIN') { bc = 'badge-update'; bt = '✏️ تعديل (مدير)'; }
-            else if (log.action === 'ADMIN_CANCEL') { bc = 'badge-cancel'; bt = '🚫 إلغاء'; }
-            else if (log.action === 'ADMIN_DELETE_WEEK') { bc = 'badge-delete'; bt = '🗑️ حذف أسبوع'; }
-            const rt = log.actorRole === 'teacher' ? 'معلم' : log.actorRole === 'admin' ? 'مدير' : log.actorRole;
-            html += '<tr><td style="white-space:nowrap;font-size:.8rem;">' + escapeHtml(log.timestamp) + '</td>' +
-              '<td><span class="badge ' + bc + '">' + bt + '</span></td>' +
-              '<td>' + escapeHtml(log.actor) + '</td>' +
-              '<td>' + escapeHtml(rt) + '</td>' +
-              '<td style="white-space:nowrap;">' + (log.date ? formatArabicDate(log.date) + (log.period ? ' — ح' + log.period : '') : '—') + '</td>' +
-              '<td style="font-size:.8rem;line-height:1.5;">' + escapeHtml(log.details || '—') + '</td></tr>';
-          });
-          document.getElementById('auditBody').innerHTML = html;
+          renderAuditLog(res);
+          clientCachePut(cacheKey, res, 60);
         })
         .catch(err => {
           document.getElementById('auditLoading').classList.remove('show');
@@ -1436,6 +1512,34 @@
           document.getElementById('auditBody').innerHTML =
             '<tr><td colspan="6" style="text-align:center;color:var(--danger);padding:2rem;">خطأ: ' + escapeHtml(err.message) + '</td></tr>';
         });
+    }
+
+    function renderAuditLog(res) {
+      document.getElementById('auditContent').style.display = 'block';
+      const logs = res.logs || [];
+      if (logs.length === 0) {
+        document.getElementById('auditBody').innerHTML =
+          '<tr><td colspan="6" style="text-align:center;color:var(--gray-500);padding:2rem;">لا توجد عمليات</td></tr>';
+        return;
+      }
+      let html = '';
+      logs.forEach(log => {
+        let bc = 'badge-update', bt = log.action;
+        if (log.action === 'CREATE') { bc = 'badge-create'; bt = '➕ إنشاء'; }
+        else if (log.action === 'DELETE') { bc = 'badge-delete'; bt = '🗑️ حذف'; }
+        else if (log.action === 'UPDATE_TEACHER') { bc = 'badge-update'; bt = '✏️ تعديل (معلم)'; }
+        else if (log.action === 'UPDATE_ADMIN') { bc = 'badge-update'; bt = '✏️ تعديل (مدير)'; }
+        else if (log.action === 'ADMIN_CANCEL') { bc = 'badge-cancel'; bt = '🚫 إلغاء'; }
+        else if (log.action === 'ADMIN_DELETE_WEEK') { bc = 'badge-delete'; bt = '🗑️ حذف أسبوع'; }
+        const rt = log.actorRole === 'teacher' ? 'معلم' : log.actorRole === 'admin' ? 'مدير' : log.actorRole;
+        html += '<tr><td style="white-space:nowrap;font-size:.8rem;">' + escapeHtml(log.timestamp) + '</td>' +
+          '<td><span class="badge ' + bc + '">' + bt + '</span></td>' +
+          '<td>' + escapeHtml(log.actor) + '</td>' +
+          '<td>' + escapeHtml(rt) + '</td>' +
+          '<td style="white-space:nowrap;">' + (log.date ? formatArabicDate(log.date) + (log.period ? ' — ح' + log.period : '') : '—') + '</td>' +
+          '<td style="font-size:.8rem;line-height:1.5;">' + escapeHtml(log.details || '—') + '</td></tr>';
+      });
+      document.getElementById('auditBody').innerHTML = html;
     }
 
     function setReportType(type) {
@@ -1499,7 +1603,8 @@
     function renderReportHeader(title, periodText) {
       const schoolName = document.getElementById('appSubtitle').textContent || 'مدرسة أبو الدرداء للتعليم الأساسي للبنين ٥-١٢';
       return '<div class="report-header"><p class="school-name">' + escapeHtml(schoolName) + '</p>' +
-        '<p class="report-title">' + title + '</p><p class="report-period">' + periodText + '</p></div>';
+        '<p class="report-title">' + title + '</p>' +
+        '<p class="report-period">' + periodText + '</p></div>';
     }
 
     function renderWeeklyReport(res) {
@@ -1614,7 +1719,7 @@
       let csv = '';
       const BOM = '\uFEFF';
       const schoolName = document.getElementById('appSubtitle').textContent || '';
-      csv += '"' + schoolName + '"\n';
+      csv += '"' + schoolName + '"\n\n';
       if (state.reportMeta.type === 'weekly') {
         csv += '"تقرير الحجوزات الأسبوعي"\n"من ' + state.reportData.startDate + ' إلى ' + state.reportData.endDate + '"\n\n';
         csv += '"التاريخ","اليوم","الحصة","المعلم","الصف","المادة","الدرس","الاحتياجات"\n';
