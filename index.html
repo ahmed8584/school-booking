@@ -385,7 +385,6 @@
 
   <div id="toastContainer" class="toast-container"></div>
 
-  <!-- تسجيل الدخول -->
   <div id="loginScreen" class="login-screen">
     <button class="theme-toggle-login" onclick="toggleTheme()">
       <span id="themeIconLogin">🌙</span>
@@ -424,7 +423,6 @@
     </div>
   </div>
 
-  <!-- التطبيق -->
   <div id="app" class="app">
     <header class="app-header">
       <div class="header-content">
@@ -583,7 +581,6 @@
     </footer>
   </div>
 
-  <!-- نافذة الحجز -->
   <div id="bookingModal" class="modal-overlay">
     <div class="modal">
       <div class="modal-header">
@@ -616,7 +613,6 @@
     </div>
   </div>
 
-  <!-- نافذة النجاح -->
   <div id="successModal" class="modal-overlay">
     <div class="modal modal-success">
       <div class="modal-body">
@@ -635,7 +631,6 @@
     </div>
   </div>
 
-  <!-- نافذة واتساب -->
   <div id="whatsappModal" class="modal-overlay">
     <div class="modal">
       <div class="modal-header">
@@ -664,7 +659,6 @@
     </div>
   </div>
 
-  <!-- نافذة الإلغاء (مدير) -->
   <div id="cancelModal" class="modal-overlay">
     <div class="modal">
       <div class="modal-header">
@@ -687,7 +681,6 @@
     </div>
   </div>
 
-  <!-- نافذة الإلغاء (معلم) -->
   <div id="cancelTeacherModal" class="modal-overlay">
     <div class="modal">
       <div class="modal-header">
@@ -750,7 +743,7 @@
     }
 
     /***********************************************
-     * 🌐 دالة الاتصال (مع Timeout 60s)
+     * 🌐 دالة الاتصال (timeout 15 ثانية)
      ***********************************************/
     function callAPI(action, params) {
       params = params || [];
@@ -764,7 +757,7 @@
       const url = API_URL + '?payload=' + payload + '&t=' + Date.now();
 
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 60000);
+      const timeoutId = setTimeout(() => controller.abort(), 15000);
 
       return fetch(url, {
         method: 'GET',
@@ -776,7 +769,7 @@
       .then(response => {
         clearTimeout(timeoutId);
         if (!response.ok) {
-          throw new Error('فشل الاتصال: HTTP ' + response.status);
+          throw new Error('HTTP ' + response.status);
         }
         return response.text();
       })
@@ -785,14 +778,15 @@
           return JSON.parse(text);
         } catch (e) {
           const match = text.match(/\((\{[\s\S]*\})\)/);
-          if (match) {
-            return JSON.parse(match[1]);
-          }
+          if (match) return JSON.parse(match[1]);
           throw new Error('استجابة غير صالحة');
         }
       })
       .catch(err => {
         clearTimeout(timeoutId);
+        if (err.name === 'AbortError') {
+          throw new Error('انتهت مهلة الاتصال — حاول مرة أخرى');
+        }
         throw err;
       });
     }
@@ -1047,7 +1041,6 @@
       loadWeek();
     }
 
-    /* ⚡ تحميل من الخادم مع Cache */
     function loadWeek(forceRefresh) {
       const startStr = formatDate(state.weekStart);
       const cacheKey = 'week_' + startStr;
@@ -1081,11 +1074,11 @@
         })
         .catch(err => {
           document.getElementById('loading').classList.remove('show');
+          document.getElementById('scheduleWrapper').style.display = 'block';
           showToast('خطأ: ' + err.message, 'error');
         });
     }
 
-    /* ⚡ مزامنة خفيفة من الخادم بدون مسح الكاش */
     function loadWeekFromServer() {
       const startStr = formatDate(state.weekStart);
       const cacheKey = 'week_' + startStr;
@@ -1253,7 +1246,9 @@
 
     function handleBookingSubmit(event) { event.preventDefault(); submitBookingForm(); }
 
-    /* ⚡ الحل النهائي: إضافة الحجز مباشرة إلى state + renderSchedule فوري */
+    /***********************************************
+     * ⚡ الحل: تحديث فوري بدون انتظار الخادم
+     ***********************************************/
     function submitBookingForm() {
       const id = document.getElementById('bookingId').value;
       const data = {
@@ -1268,85 +1263,88 @@
       if (!data.date || !data.teacher) { showModalAlert('يرجى إدخال التاريخ واسم المعلم', 'error'); return; }
       hideModalAlert();
 
-      const promise = id
-        ? callAPI('updateBooking', [id, data, state.user.username || 'admin'])
-        : callAPI('createBooking', [data]);
+      if (!id) {
+        // ⚡ حجز جديد
+        const tempId = 'TEMP-' + Date.now();
+        const dayName = DAY_NAMES[new Date(data.date + 'T00:00:00').getDay()] || '';
 
-      promise.then(res => {
-        if (res.success) {
-          closeBookingModal();
+        closeBookingModal();
 
-          if (!id) {
-            // ⚡ حجز جديد: إضافة مباشرة إلى state.bookings
-            const dayName = DAY_NAMES[new Date(data.date + 'T00:00:00').getDay()] || '';
+        // ⚡ أضف فورًا
+        state.bookings.push({
+          id: tempId,
+          date: data.date,
+          day: dayName,
+          period: data.period,
+          teacher: data.teacher,
+          grade: data.grade,
+          subject: data.subject,
+          lesson: data.lesson,
+          needs: data.needs,
+          createdAt: new Date().toISOString().slice(0, 19).replace('T', ' ')
+        });
+        renderSchedule();
 
-            // تحقق إذا موجود (لتجنب التكرار)
-            const exists = state.bookings.find(x => x.id === res.bookingId);
-            if (!exists) {
-              state.bookings.push({
-                id: res.bookingId,
-                date: data.date,
-                day: dayName,
-                period: data.period,
-                teacher: data.teacher,
-                grade: data.grade,
-                subject: data.subject,
-                lesson: data.lesson,
-                needs: data.needs,
-                createdAt: new Date().toISOString().slice(0, 19).replace('T', ' ')
-              });
-            }
-
-            // ⚡ عرض فوري
-            renderSchedule();
-
-            // ⚡ حدّث الكاش المحلي
-            const weekKey = 'week_' + formatDate(getSunday(new Date(data.date + 'T00:00:00')));
-            const cachedWeek = clientCacheGet(weekKey);
-            if (cachedWeek && cachedWeek.bookings) {
-              cachedWeek.bookings = state.bookings.slice();
-              clientCachePut(weekKey, cachedWeek, 300);
-            }
-
-            // ⚡ نافذة النجاح
-            showBookingSuccess(data, res.bookingId);
-
-            // ⚡ مزامنة خفيفة مع الخادم (بعد 3 ثوانٍ)
-            setTimeout(() => loadWeekFromServer(), 3000);
-
-          } else {
-            // تعديل: تحديث state
-            const idx = state.bookings.findIndex(x => x.id === id);
-            if (idx !== -1) {
-              state.bookings[idx] = {
-                id: id,
-                date: data.date,
-                day: DAY_NAMES[new Date(data.date + 'T00:00:00').getDay()] || '',
-                period: data.period,
-                teacher: data.teacher,
-                grade: data.grade,
-                subject: data.subject,
-                lesson: data.lesson,
-                needs: data.needs,
-                createdAt: state.bookings[idx].createdAt
-              };
-              renderSchedule();
-
-              const weekKey = 'week_' + formatDate(getSunday(new Date(data.date + 'T00:00:00')));
-              const cachedWeek = clientCacheGet(weekKey);
-              if (cachedWeek && cachedWeek.bookings) {
-                cachedWeek.bookings = state.bookings.slice();
-                clientCachePut(weekKey, cachedWeek, 300);
-              }
-            }
-            showToast(res.message || 'تم الحفظ', 'success');
-            setTimeout(() => loadWeekFromServer(), 3000);
-          }
-
-        } else {
-          showModalAlert(res.message || 'فشل الحفظ', res.conflict ? 'warning' : 'error');
+        // ⚡ حدّث الكاش
+        const weekKey = 'week_' + formatDate(getSunday(new Date(data.date + 'T00:00:00')));
+        const cachedWeek = clientCacheGet(weekKey);
+        if (cachedWeek && cachedWeek.bookings) {
+          cachedWeek.bookings = state.bookings.slice();
+          clientCachePut(weekKey, cachedWeek, 300);
         }
-      }).catch(err => showModalAlert('خطأ: ' + err.message, 'error'));
+
+        showToast('⏳ جاري حفظ الحجز...', 'info', 1500);
+
+        // ⚡ أرسل للخادم
+        callAPI('createBooking', [data])
+          .then(res => {
+            if (res.success) {
+              const idx = state.bookings.findIndex(x => x.id === tempId);
+              if (idx !== -1) state.bookings[idx].id = res.bookingId;
+              showBookingSuccess(data, res.bookingId);
+              showToast('✅ تم الحفظ', 'success', 2000);
+              setTimeout(() => loadWeekFromServer(), 2000);
+            } else {
+              state.bookings = state.bookings.filter(x => x.id !== tempId);
+              renderSchedule();
+              showToast('❌ فشل: ' + (res.message || ''), 'error', 4000);
+            }
+          })
+          .catch(err => {
+            state.bookings = state.bookings.filter(x => x.id !== tempId);
+            renderSchedule();
+            showToast('⚠️ تحقق من الاتصال', 'warning', 4000);
+            setTimeout(() => loadWeek(true), 3000);
+          });
+
+      } else {
+        // تعديل
+        callAPI('updateBooking', [id, data, state.user.username || 'admin'])
+          .then(res => {
+            if (res.success) {
+              closeBookingModal();
+              const idx = state.bookings.findIndex(x => x.id === id);
+              if (idx !== -1) {
+                state.bookings[idx] = Object.assign({}, state.bookings[idx], {
+                  date: data.date,
+                  day: DAY_NAMES[new Date(data.date + 'T00:00:00').getDay()] || '',
+                  period: data.period,
+                  teacher: data.teacher,
+                  grade: data.grade,
+                  subject: data.subject,
+                  lesson: data.lesson,
+                  needs: data.needs
+                });
+                renderSchedule();
+              }
+              showToast('✅ تم الحفظ', 'success');
+              setTimeout(() => loadWeekFromServer(), 2000);
+            } else {
+              showModalAlert(res.message || 'فشل', res.conflict ? 'warning' : 'error');
+            }
+          })
+          .catch(err => showModalAlert('خطأ: ' + err.message, 'error'));
+      }
     }
 
     function submitTeacherUpdate() {
@@ -1363,9 +1361,7 @@
         .then(res => {
           if (res.success) {
             closeBookingModal();
-            showToast(res.message || 'تم التحديث', 'success');
-
-            // ⚡ تحديث state فورًا
+            showToast('✅ تم التحديث', 'success');
             const idx = state.bookings.findIndex(x => x.id === id);
             if (idx !== -1) {
               state.bookings[idx].grade = updates.grade;
@@ -1374,8 +1370,7 @@
               state.bookings[idx].needs = updates.needs;
               renderSchedule();
             }
-
-            setTimeout(() => loadWeekFromServer(), 3000);
+            setTimeout(() => loadWeekFromServer(), 2000);
           } else {
             showModalAlert(res.message || 'فشل', 'error');
           }
@@ -1513,35 +1508,45 @@
       document.getElementById('cancelTeacherModal').classList.remove('show');
     }
 
-    /* ⚡ الحل: حذف فوري من state */
+    /***********************************************
+     * ⚡ إلغاء حجز (معلم) — فوري
+     ***********************************************/
     function confirmTeacherCancel() {
       const b = state.currentCell && state.currentCell.booking;
       if (!b) return;
+
+      const backup = b;
+
+      closeCancelTeacherModal();
+
+      state.bookings = state.bookings.filter(x => x.id !== b.id);
+      renderSchedule();
+
+      const weekKey = 'week_' + formatDate(getSunday(new Date(b.date + 'T00:00:00')));
+      const cachedWeek = clientCacheGet(weekKey);
+      if (cachedWeek && cachedWeek.bookings) {
+        cachedWeek.bookings = state.bookings.slice();
+        clientCachePut(weekKey, cachedWeek, 300);
+      }
+
+      showToast('⏳ جاري إلغاء الحجز...', 'info', 1500);
+
       callAPI('deleteBooking', [b.id, state.user.name, 'teacher'])
         .then(res => {
           if (res.success) {
-            closeCancelTeacherModal();
-            showToast('تم إلغاء الحجز بنجاح', 'success');
-
-            // ⚡ احذف من state فورًا
-            state.bookings = state.bookings.filter(x => x.id !== b.id);
-            renderSchedule();
-
-            // ⚡ حدّث الكاش
-            const weekKey = 'week_' + formatDate(getSunday(new Date(b.date + 'T00:00:00')));
-            const cachedWeek = clientCacheGet(weekKey);
-            if (cachedWeek && cachedWeek.bookings) {
-              cachedWeek.bookings = state.bookings.slice();
-              clientCachePut(weekKey, cachedWeek, 300);
-            }
-
-            // ⚡ مزامنة خفيفة
-            setTimeout(() => loadWeekFromServer(), 3000);
+            showToast('✅ تم إلغاء الحجز', 'success', 3000);
+            setTimeout(() => loadWeekFromServer(), 2000);
           } else {
-            showToast(res.message || 'فشل', 'error');
+            state.bookings.push(backup);
+            renderSchedule();
+            showToast('❌ فشل: ' + (res.message || ''), 'error', 4000);
           }
         })
-        .catch(err => showToast('خطأ: ' + err.message, 'error'));
+        .catch(err => {
+          console.warn('خطأ:', err.message);
+          showToast('⚠️ جاري التحقق...', 'warning', 3000);
+          setTimeout(() => loadWeek(true), 3000);
+        });
     }
 
     function openCancelModal() {
@@ -1564,49 +1569,53 @@
       state.cancelTarget = null;
     }
 
-    /* ⚡ الحل: حذف فوري من state (مدير) */
+    /***********************************************
+     * ⚡ إلغاء حجز (مدير) — فوري
+     ***********************************************/
     function confirmAdminCancel() {
       const b = state.cancelTarget;
       if (!b) return;
+
       const reason = document.getElementById('cancelReason').value.trim();
-      const alertEl = document.getElementById('cancelAlert');
-      alertEl.className = 'alert';
+      const backup = b;
+
+      closeCancelModal();
+
+      state.bookings = state.bookings.filter(x => x.id !== b.id);
+      renderSchedule();
+
+      const weekKey = 'week_' + formatDate(getSunday(new Date(b.date + 'T00:00:00')));
+      const cachedWeek = clientCacheGet(weekKey);
+      if (cachedWeek && cachedWeek.bookings) {
+        cachedWeek.bookings = state.bookings.slice();
+        clientCachePut(weekKey, cachedWeek, 300);
+      }
+
+      showToast('⏳ جاري إلغاء الحجز...', 'info', 1500);
+
       callAPI('adminCancelBooking', [b.id, reason, state.user.username || 'admin'])
         .then(res => {
           if (res.success) {
-            closeCancelModal();
-            showToast('تم إلغاء الحجز', 'success');
-
-            // ⚡ احذف من state فورًا
-            state.bookings = state.bookings.filter(x => x.id !== b.id);
-            renderSchedule();
-
-            // ⚡ حدّث الكاش
-            const weekKey = 'week_' + formatDate(getSunday(new Date(b.date + 'T00:00:00')));
-            const cachedWeek = clientCacheGet(weekKey);
-            if (cachedWeek && cachedWeek.bookings) {
-              cachedWeek.bookings = state.bookings.slice();
-              clientCachePut(weekKey, cachedWeek, 300);
-            }
-
-            // ⚡ مزامنة خفيفة
-            setTimeout(() => loadWeekFromServer(), 3000);
-
-            setTimeout(() => {
-              if (confirm('هل تريد إرسال إشعار الإلغاء عبر واتساب؟')) {
-                state.cancelTarget = b;
-                openWhatsAppModal('cancel');
-              }
-            }, 600);
+            showToast('✅ تم إلغاء الحجز', 'success', 3000);
+            setTimeout(() => loadWeekFromServer(), 2000);
           } else {
-            alertEl.className = 'alert alert-error show';
-            alertEl.textContent = res.message || 'فشل';
+            state.bookings.push(backup);
+            renderSchedule();
+            showToast('❌ فشل: ' + (res.message || ''), 'error', 4000);
           }
         })
         .catch(err => {
-          alertEl.className = 'alert alert-error show';
-          alertEl.textContent = 'خطأ: ' + err.message;
+          console.warn('خطأ:', err.message);
+          showToast('⚠️ جاري التحقق...', 'warning', 3000);
+          setTimeout(() => loadWeek(true), 3000);
         });
+
+      setTimeout(() => {
+        if (confirm('هل تريد إرسال إشعار الإلغاء عبر واتساب؟')) {
+          state.cancelTarget = backup;
+          openWhatsAppModal('cancel');
+        }
+      }, 1000);
     }
 
     function loadDashboard() {
@@ -1684,10 +1693,7 @@
     function loadAuditLog() {
       const cacheKey = 'audit';
       const cached = clientCacheGet(cacheKey);
-      if (cached) {
-        renderAuditLog(cached);
-        return;
-      }
+      if (cached) { renderAuditLog(cached); return; }
 
       document.getElementById('auditLoading').classList.add('show');
       document.getElementById('auditContent').style.display = 'none';
@@ -1968,7 +1974,6 @@
     initTheme();
     initIdleTracker();
 
-    // ⚡ استرجاع الجلسة عند التحميل (F5)
     const savedSession = loadSession();
     if (savedSession && savedSession.user) {
       state.user = savedSession.user;
