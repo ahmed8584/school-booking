@@ -301,8 +301,6 @@
     .report-header .report-title { font-size: 1.1rem; font-weight: 700;
       color: #374151; margin: .35rem 0 0; }
     .report-header .report-period { color: #6b7280; font-size: .9rem; margin: .35rem 0 0; }
-    .report-header .report-author { color: #2563eb; font-weight: 700;
-      font-size: .85rem; margin: .35rem 0 0; }
     .report-summary-grid { display: grid;
       grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
       gap: .65rem; margin-bottom: 1.5rem; }
@@ -328,7 +326,6 @@
     .report-signature .line { display: inline-block; min-width: 200px;
       border-bottom: 1px solid #6b7280; margin-top: 2rem; padding-bottom: .25rem; }
 
-    /* ============ Footer ============ */
     .app-footer {
       text-align: center;
       padding: 1.5rem 1rem 2rem;
@@ -581,7 +578,7 @@
       </div>
     </main>
 
-    <!-- ═══ Footer — أسفل الواجهة فقط ═══ -->
+    <!-- Footer -->
     <footer class="app-footer no-print">
       <p class="footer-author">إعداد: أ.أحمد اليعقوبي</p>
     </footer>
@@ -793,14 +790,66 @@
     }
 
     /***********************************************
-     * الحالة
+     * الحالة والجلسة
      ***********************************************/
     const state = {
       user: null, weekStart: null, bookings: [],
       currentCell: null, currentTab: 'schedule', cancelTarget: null,
       reportType: 'weekly', reportData: null, reportMeta: null,
-      successData: null, whatsappData: null, whatsappType: 'booking'
+      successData: null, whatsappData: null, whatsappType: 'booking',
+      sessionTimer: null,
+      idleTimeout: 10 * 60 * 1000
     };
+
+    const SESSION_KEY = 'sb_session';
+
+    function saveSession() {
+      try {
+        if (state.user) {
+          sessionStorage.setItem(SESSION_KEY, JSON.stringify({
+            user: state.user,
+            weekStart: state.weekStart ? state.weekStart.toISOString() : null,
+            currentTab: state.currentTab,
+            timestamp: Date.now()
+          }));
+        }
+      } catch (e) {}
+    }
+
+    function loadSession() {
+      try {
+        const raw = sessionStorage.getItem(SESSION_KEY);
+        if (!raw) return null;
+        const data = JSON.parse(raw);
+        if (data.timestamp && (Date.now() - data.timestamp) > 30 * 60 * 1000) {
+          sessionStorage.removeItem(SESSION_KEY);
+          return null;
+        }
+        return data;
+      } catch (e) { return null; }
+    }
+
+    function clearSession() {
+      try { sessionStorage.removeItem(SESSION_KEY); } catch (e) {}
+    }
+
+    function resetIdleTimer() {
+      if (state.sessionTimer) clearTimeout(state.sessionTimer);
+      if (!state.user) return;
+
+      state.sessionTimer = setTimeout(() => {
+        showToast('⚠️ تم تسجيل خروجك بسبب عدم النشاط لمدة 10 دقائق', 'warning', 5000);
+        setTimeout(() => logout(), 1500);
+      }, state.idleTimeout);
+    }
+
+    function initIdleTracker() {
+      ['click', 'keydown', 'mousemove', 'touchstart', 'scroll'].forEach(evt => {
+        document.addEventListener(evt, () => {
+          if (state.user) resetIdleTimer();
+        }, { passive: true });
+      });
+    }
 
     const DAY_NAMES = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس'];
     const MONTH_NAMES_AR = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
@@ -950,10 +999,14 @@
       if (schoolName) document.getElementById('appSubtitle').textContent = schoolName;
       state.weekStart = getSunday(new Date());
       switchMainTab('schedule');
+      saveSession();
+      resetIdleTimer();
     }
 
     function logout() {
+      if (state.sessionTimer) clearTimeout(state.sessionTimer);
       state.user = null; state.bookings = [];
+      clearSession();
       document.getElementById('app').classList.remove('show');
       document.getElementById('loginScreen').style.display = 'flex';
       document.getElementById('teacherForm').reset();
@@ -966,6 +1019,7 @@
       document.querySelectorAll('.main-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
       document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
       document.getElementById('tab-' + tab).style.display = 'block';
+      saveSession();
       if (tab === 'schedule') loadWeek();
       else if (tab === 'dashboard') loadDashboard();
       else if (tab === 'reports') { initReportDefaults(); setReportType(state.reportType || 'weekly'); }
@@ -975,21 +1029,31 @@
     function changeWeek(delta) {
       const d = new Date(state.weekStart);
       d.setDate(d.getDate() + delta * 7);
-      state.weekStart = d; loadWeek();
+      state.weekStart = d;
+      saveSession();
+      loadWeek();
     }
-    function goToday() { state.weekStart = getSunday(new Date()); loadWeek(); }
+    function goToday() {
+      state.weekStart = getSunday(new Date());
+      saveSession();
+      loadWeek();
+    }
 
-    function loadWeek() {
+    function loadWeek(forceRefresh) {
       const startStr = formatDate(state.weekStart);
       const cacheKey = 'week_' + startStr;
 
-      const cached = clientCacheGet(cacheKey);
-      if (cached) {
-        state.bookings = cached.bookings || [];
-        document.getElementById('weekInfo').textContent =
-          'من ' + formatArabicDate(cached.startDate) + ' إلى ' + formatArabicDate(cached.endDate);
-        renderSchedule();
-        return;
+      if (!forceRefresh) {
+        const cached = clientCacheGet(cacheKey);
+        if (cached) {
+          state.bookings = cached.bookings || [];
+          document.getElementById('weekInfo').textContent =
+            'من ' + formatArabicDate(cached.startDate) + ' إلى ' + formatArabicDate(cached.endDate);
+          renderSchedule();
+          return;
+        }
+      } else {
+        try { localStorage.removeItem(CLIENT_CACHE_PREFIX + cacheKey); } catch (e) {}
       }
 
       document.getElementById('loading').classList.add('show');
@@ -1187,7 +1251,7 @@
           if (!id) showBookingSuccess(data, res.bookingId);
           else showToast(res.message || 'تم الحفظ', 'success');
           clientCacheClear();
-          loadWeek();
+          setTimeout(() => loadWeek(true), 300);
         } else {
           showModalAlert(res.message || 'فشل الحفظ', res.conflict ? 'warning' : 'error');
         }
@@ -1210,7 +1274,7 @@
             closeBookingModal();
             showToast(res.message || 'تم التحديث', 'success');
             clientCacheClear();
-            loadWeek();
+            setTimeout(() => loadWeek(true), 300);
           } else {
             showModalAlert(res.message || 'فشل', 'error');
           }
@@ -1357,7 +1421,9 @@
             closeCancelTeacherModal();
             showToast('تم إلغاء الحجز بنجاح', 'success');
             clientCacheClear();
-            loadWeek();
+            state.bookings = state.bookings.filter(x => x.id !== b.id);
+            renderSchedule();
+            setTimeout(() => loadWeek(true), 500);
           } else {
             showToast(res.message || 'فشل', 'error');
           }
@@ -1397,13 +1463,15 @@
             closeCancelModal();
             showToast('تم إلغاء الحجز', 'success');
             clientCacheClear();
-            loadWeek();
+            state.bookings = state.bookings.filter(x => x.id !== b.id);
+            renderSchedule();
+            setTimeout(() => loadWeek(true), 500);
             setTimeout(() => {
               if (confirm('هل تريد إرسال إشعار الإلغاء عبر واتساب؟')) {
                 state.cancelTarget = b;
                 openWhatsAppModal('cancel');
               }
-            }, 400);
+            }, 600);
           } else {
             alertEl.className = 'alert alert-error show';
             alertEl.textContent = res.message || 'فشل';
@@ -1477,7 +1545,9 @@
           if (res.success) {
             showToast(res.message || 'تم الحذف', 'success');
             clientCacheClear();
-            loadDashboard();
+            state.bookings = [];
+            setTimeout(() => loadWeek(true), 500);
+            setTimeout(() => loadDashboard(), 700);
           }
           else showToast(res.message || 'فشل', 'error');
         })
@@ -1768,11 +1838,40 @@
       }
     });
 
-    window.addEventListener('pagehide', function() {
-      state.user = null; state.bookings = [];
+    window.addEventListener('beforeunload', function() {
+      clearSession();
     });
 
     initTheme();
+    initIdleTracker();
+
+    // ⚡ استرجاع الجلسة عند التحميل (F5)
+    const savedSession = loadSession();
+    if (savedSession && savedSession.user) {
+      state.user = savedSession.user;
+      state.weekStart = savedSession.weekStart ? new Date(savedSession.weekStart) : getSunday(new Date());
+      state.currentTab = savedSession.currentTab || 'schedule';
+
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('app').classList.add('show');
+
+      const badge = document.getElementById('userBadge');
+      if (state.user.role === 'teacher') {
+        badge.textContent = '👨‍🏫 ' + state.user.name;
+        badge.classList.remove('admin');
+        document.getElementById('tabDashboard').style.display = 'none';
+        document.getElementById('tabReports').style.display = 'none';
+        document.getElementById('tabAudit').style.display = 'none';
+      } else {
+        badge.textContent = '🛡️ ' + state.user.username;
+        badge.classList.add('admin');
+        document.getElementById('tabDashboard').style.display = 'inline-block';
+        document.getElementById('tabReports').style.display = 'inline-block';
+        document.getElementById('tabAudit').style.display = 'inline-block';
+      }
+      switchMainTab(state.currentTab);
+      resetIdleTimer();
+    }
   </script>
 </body>
 </html>
