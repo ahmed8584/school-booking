@@ -743,7 +743,7 @@
     }
 
     /***********************************************
-     * 🌐 دالة الاتصال (timeout 15s)
+     * 🌐 دالة الاتصال
      ***********************************************/
     function callAPI(action, params) {
       params = params || [];
@@ -768,9 +768,7 @@
       })
       .then(response => {
         clearTimeout(timeoutId);
-        if (!response.ok) {
-          throw new Error('HTTP ' + response.status);
-        }
+        if (!response.ok) throw new Error('HTTP ' + response.status);
         return response.text();
       })
       .then(text => {
@@ -785,7 +783,7 @@
       .catch(err => {
         clearTimeout(timeoutId);
         if (err.name === 'AbortError') {
-          throw new Error('انتهت مهلة الاتصال — حاول مرة أخرى');
+          throw new Error('انتهت مهلة الاتصال');
         }
         throw err;
       });
@@ -800,8 +798,7 @@
       reportType: 'weekly', reportData: null, reportMeta: null,
       successData: null, whatsappData: null, whatsappType: 'booking',
       sessionTimer: null,
-      idleTimeout: 10 * 60 * 1000,
-      isRendering: false
+      idleTimeout: 10 * 60 * 1000
     };
 
     const SESSION_KEY = 'sb_session';
@@ -839,9 +836,8 @@
     function resetIdleTimer() {
       if (state.sessionTimer) clearTimeout(state.sessionTimer);
       if (!state.user) return;
-
       state.sessionTimer = setTimeout(() => {
-        showToast('⚠️ تم تسجيل خروجك بسبب عدم النشاط لمدة 10 دقائق', 'warning', 5000);
+        showToast('⚠️ تم تسجيل خروجك بسبب عدم النشاط', 'warning', 5000);
         setTimeout(() => logout(), 1500);
       }, state.idleTimeout);
     }
@@ -1023,7 +1019,7 @@
       document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
       document.getElementById('tab-' + tab).style.display = 'block';
       saveSession();
-      if (tab === 'schedule') loadWeek(true);
+      if (tab === 'schedule') loadWeek();
       else if (tab === 'dashboard') loadDashboard();
       else if (tab === 'reports') { initReportDefaults(); setReportType(state.reportType || 'weekly'); }
       else if (tab === 'audit') loadAuditLog();
@@ -1043,14 +1039,12 @@
     }
 
     /***********************************************
-     * ⚡ تحميل الأسبوع
-     * forceRefresh = true افتراضيًا (لتحديث فوري)
+     * تحميل الأسبوع
      ***********************************************/
     function loadWeek(forceRefresh) {
       const startStr = formatDate(state.weekStart);
       const cacheKey = 'week_' + startStr;
 
-      // محاولة القراءة من الكاش إذا لم يكن forceRefresh
       if (!forceRefresh) {
         const cached = clientCacheGet(cacheKey);
         if (cached) {
@@ -1085,18 +1079,28 @@
         });
     }
 
+    /***********************************************
+     * ⚡ مزامنة خلفية (لا تُرجع البيانات القديمة)
+     * 
+     * بعد كل CRUD، ننتظر 4 ثوانٍ ثم نزامن
+     ***********************************************/
     function loadWeekFromServer() {
       const startStr = formatDate(state.weekStart);
       const cacheKey = 'week_' + startStr;
 
-      // امسح الكاش لهذا الأسبوع
-      try { localStorage.removeItem(CLIENT_CACHE_PREFIX + cacheKey); } catch (e) {}
-
       callAPI('getWeekBookings', [startStr])
         .then(res => {
           if (!res.success) return;
-          state.bookings = res.bookings || [];
-          renderSchedule();
+
+          // ⚡ فقط حدّث إذا كانت البيانات مختلفة
+          const currentIds = state.bookings.map(b => b.id).sort().join(',');
+          const newIds = (res.bookings || []).map(b => b.id).sort().join(',');
+
+          if (currentIds !== newIds) {
+            state.bookings = res.bookings || [];
+            renderSchedule();
+          }
+
           clientCachePut(cacheKey, res, 300);
         })
         .catch(err => {
@@ -1105,20 +1109,19 @@
     }
 
     /***********************************************
-     * ⚡ رسم الجدول (محسّن — حماية من DOM غير جاهز)
+     * رسم الجدول
      ***********************************************/
     function renderSchedule() {
-      // ⚡ حماية من الفشل عند F5
       const head = document.getElementById('scheduleHead');
       const body = document.getElementById('scheduleBody');
 
       if (!head || !body) {
-        console.warn('⚠️ renderSchedule: العناصر غير جاهزة بعد');
+        console.warn('renderSchedule: العناصر غير جاهزة');
         return;
       }
 
       if (!state.weekStart) {
-        console.warn('⚠️ renderSchedule: weekStart غير محدد');
+        console.warn('renderSchedule: weekStart غير محدد');
         return;
       }
 
@@ -1271,7 +1274,7 @@
     function handleBookingSubmit(event) { event.preventDefault(); submitBookingForm(); }
 
     /***********************************************
-     * ⚡ إضافة حجز (Optimistic UI)
+     * ⚡ حجز جديد (Optimistic)
      ***********************************************/
     function submitBookingForm() {
       const id = document.getElementById('bookingId').value;
@@ -1288,13 +1291,11 @@
       hideModalAlert();
 
       if (!id) {
-        // ⚡ حجز جديد: Optimistic UI
         const tempId = 'TEMP-' + Date.now();
         const dayName = DAY_NAMES[new Date(data.date + 'T00:00:00').getDay()] || '';
 
         closeBookingModal();
 
-        // أضف فورًا
         state.bookings.push({
           id: tempId, date: data.date, day: dayName,
           period: data.period, teacher: data.teacher,
@@ -1304,7 +1305,6 @@
         });
         renderSchedule();
 
-        // امسح كاش هذا الأسبوع
         const weekKey = 'week_' + formatDate(getSunday(new Date(data.date + 'T00:00:00')));
         try { localStorage.removeItem(CLIENT_CACHE_PREFIX + weekKey); } catch (e) {}
 
@@ -1317,7 +1317,8 @@
               if (idx !== -1) state.bookings[idx].id = res.bookingId;
               showBookingSuccess(data, res.bookingId);
               showToast('✅ تم الحفظ', 'success', 2000);
-              setTimeout(() => loadWeekFromServer(), 2000);
+              // ⚡ تأخير 4 ثوانٍ قبل المزامنة (لينظف الخادم كاشه)
+              setTimeout(() => loadWeekFromServer(), 4000);
             } else {
               state.bookings = state.bookings.filter(x => x.id !== tempId);
               renderSchedule();
@@ -1328,10 +1329,9 @@
             state.bookings = state.bookings.filter(x => x.id !== tempId);
             renderSchedule();
             showToast('⚠️ تحقق من الاتصال', 'warning', 4000);
-            setTimeout(() => loadWeek(true), 3000);
+            setTimeout(() => loadWeek(true), 4000);
           });
       } else {
-        // تعديل
         callAPI('updateBooking', [id, data, state.user.username || 'admin'])
           .then(res => {
             if (res.success) {
@@ -1348,7 +1348,7 @@
                 renderSchedule();
               }
               showToast('✅ تم الحفظ', 'success');
-              setTimeout(() => loadWeekFromServer(), 2000);
+              setTimeout(() => loadWeekFromServer(), 4000);
             } else {
               showModalAlert(res.message || 'فشل', res.conflict ? 'warning' : 'error');
             }
@@ -1380,7 +1380,7 @@
               state.bookings[idx].needs = updates.needs;
               renderSchedule();
             }
-            setTimeout(() => loadWeekFromServer(), 2000);
+            setTimeout(() => loadWeekFromServer(), 4000);
           } else {
             showModalAlert(res.message || 'فشل', 'error');
           }
@@ -1519,16 +1519,19 @@
     }
 
     /***********************************************
-     * ⚡ إلغاء حجز (معلم)
+     * ⚡ إلغاء حجز (معلم) — Optimistic + مزامنة بعد 4s
      ***********************************************/
     function confirmTeacherCancel() {
       const b = state.currentCell && state.currentCell.booking;
       if (!b) return;
       const backup = b;
       closeCancelTeacherModal();
+
+      // احذف فورًا
       state.bookings = state.bookings.filter(x => x.id !== b.id);
       renderSchedule();
 
+      // امسح كاش الأسبوع
       const weekKey = 'week_' + formatDate(getSunday(new Date(b.date + 'T00:00:00')));
       try { localStorage.removeItem(CLIENT_CACHE_PREFIX + weekKey); } catch (e) {}
 
@@ -1538,7 +1541,8 @@
         .then(res => {
           if (res.success) {
             showToast('✅ تم إلغاء الحجز', 'success', 3000);
-            setTimeout(() => loadWeekFromServer(), 2000);
+            // ⚡ 4 ثوانٍ — لينظف Apps Script كاشه
+            setTimeout(() => loadWeekFromServer(), 4000);
           } else {
             state.bookings.push(backup);
             renderSchedule();
@@ -1547,8 +1551,8 @@
         })
         .catch(err => {
           console.warn('خطأ:', err.message);
-          showToast('⚠️ جاري التحقق...', 'warning', 3000);
-          setTimeout(() => loadWeek(true), 3000);
+          showToast('⚠️ تحقق من الاتصال...', 'warning', 3000);
+          setTimeout(() => loadWeek(true), 4000);
         });
     }
 
@@ -1573,7 +1577,7 @@
     }
 
     /***********************************************
-     * ⚡ إلغاء حجز (مدير)
+     * ⚡ إلغاء حجز (مدير) — Optimistic + مزامنة بعد 4s
      ***********************************************/
     function confirmAdminCancel() {
       const b = state.cancelTarget;
@@ -1581,6 +1585,7 @@
       const reason = document.getElementById('cancelReason').value.trim();
       const backup = b;
       closeCancelModal();
+
       state.bookings = state.bookings.filter(x => x.id !== b.id);
       renderSchedule();
 
@@ -1593,7 +1598,7 @@
         .then(res => {
           if (res.success) {
             showToast('✅ تم إلغاء الحجز', 'success', 3000);
-            setTimeout(() => loadWeekFromServer(), 2000);
+            setTimeout(() => loadWeekFromServer(), 4000);
           } else {
             state.bookings.push(backup);
             renderSchedule();
@@ -1602,8 +1607,8 @@
         })
         .catch(err => {
           console.warn('خطأ:', err.message);
-          showToast('⚠️ جاري التحقق...', 'warning', 3000);
-          setTimeout(() => loadWeek(true), 3000);
+          showToast('⚠️ تحقق من الاتصال...', 'warning', 3000);
+          setTimeout(() => loadWeek(true), 4000);
         });
 
       setTimeout(() => {
@@ -1611,7 +1616,7 @@
           state.cancelTarget = backup;
           openWhatsAppModal('cancel');
         }
-      }, 1000);
+      }, 1500);
     }
 
     function loadDashboard() {
@@ -1675,8 +1680,8 @@
             state.bookings = [];
             renderSchedule();
             clientCacheClear();
-            setTimeout(() => loadWeek(true), 500);
-            setTimeout(() => loadDashboard(), 700);
+            setTimeout(() => loadWeek(true), 2000);
+            setTimeout(() => loadDashboard(), 2500);
           }
           else showToast(res.message || 'فشل', 'error');
         })
@@ -1995,13 +2000,11 @@
           document.getElementById('tabAudit').style.display = 'inline-block';
         }
 
-        // تعيين التبويب النشط
         document.querySelectorAll('.main-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === state.currentTab));
         document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
         const tabEl = document.getElementById('tab-' + state.currentTab);
         if (tabEl) tabEl.style.display = 'block';
 
-        // تحميل البيانات (مع تأخير بسيط لضمان جاهزية DOM)
         setTimeout(() => {
           if (state.currentTab === 'schedule') {
             loadWeek(true);
@@ -2013,13 +2016,12 @@
           } else if (state.currentTab === 'audit') {
             loadAuditLog();
           }
-        }, 100);
+        }, 300);
 
         resetIdleTimer();
       }
     }
 
-    // تنفيذ بعد بناء DOM
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', restoreSession);
     } else {
