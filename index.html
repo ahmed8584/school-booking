@@ -604,7 +604,31 @@
           </div>
           <div class="form-group"><label>اسم المعلم</label><input type="text" id="formTeacher" required></div>
           <div class="form-group"><label>الصف/الشعبة</label><input type="text" id="formGrade" placeholder="مثال: 8/1"></div>
-          <div class="form-group"><label>المادة</label><input type="text" id="formSubject"></div>
+          
+                  <!-- ✅ قائمة المواد المعدلة حسب الطلب -->
+          <div class="form-group"><label>المادة</label>
+            <select id="formSubject">
+              <option value="">اختر المادة...</option>
+              <option value="التربية الإسلامية">التربية الإسلامية</option>
+              <option value="اللغة العربية">اللغة العربية</option>
+              <option value="اللغة الإنجليزية">اللغة الإنجليزية</option>
+              <option value="الرياضيات">الرياضيات</option>
+              <option value="العلوم">العلوم</option>
+              <option value="الدراسات الاجتماعية">الدراسات الاجتماعية</option>
+              <option value="تقنية المعلومات">تقنية المعلومات</option>
+              <option value="المهارات الحياتية">المهارات الحياتية</option>
+              <option value="التربية البدنية والصحية">التربية البدنية والصحية</option>
+              <option value="الفنون البصرية">الفنون البصرية</option>
+              <option value="الفنون الموسيقية">الفنون الموسيقية</option>
+              <option value="الهوية والمواطنة">الهوية والمواطنة</option>
+              <option value="اللغة الصينية">اللغة الصينية</option>
+              <option value="الفيزياء">الفيزياء</option>
+              <option value="الكيمياء">الكيمياء</option>
+              <option value="الأحياء">الأحياء</option>
+              <option value="العلوم البيئية">العلوم البيئية</option>
+            </select>
+          </div>
+
           <div class="form-group"><label>عنوان الدرس</label><input type="text" id="formLesson"></div>
           <div class="form-group"><label>احتياجات القاعة</label><textarea id="formNeeds" rows="2" placeholder="مثال: أجهزة حاسوب، بروجكتر..."></textarea></div>
         </form>
