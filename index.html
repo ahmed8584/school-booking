@@ -539,7 +539,33 @@
               </div>
             </div>
           </div>
-          <div style="margin-top:1.25rem;display:flex;gap:.75rem;flex-wrap:wrap;">
+          
+          <!-- ✅ قسم البحث والأزرار -->
+          <div style="margin-top:1.25rem;display:flex;gap:.75rem;flex-wrap:wrap;align-items:center;">
+            <div style="margin-left: 15px;">
+              <label style="font-weight:700;color:var(--gray-700);margin-left:5px;">🔍 بحث حسب المادة:</label>
+              <select id="reportSubjectFilter" onchange="filterReportBySubject()" style="padding:.6rem;border:1.5px solid var(--gray-200);border-radius:8px;font-family:inherit;background:var(--card-bg);color:var(--gray-900);">
+                <option value="all">كل المواد</option>
+                <option value="التربية الإسلامية">التربية الإسلامية</option>
+                <option value="اللغة العربية">اللغة العربية</option>
+                <option value="اللغة الإنجليزية">اللغة الإنجليزية</option>
+                <option value="الرياضيات">الرياضيات</option>
+                <option value="العلوم">العلوم</option>
+                <option value="الدراسات الاجتماعية">الدراسات الاجتماعية</option>
+                <option value="تقنية المعلومات">تقنية المعلومات</option>
+                <option value="المهارات الحياتية">المهارات الحياتية</option>
+                <option value="التربية البدنية والصحية">التربية البدنية والصحية</option>
+                <option value="الفنون البصرية">الفنون البصرية</option>
+                <option value="الفنون الموسيقية">الفنون الموسيقية</option>
+                <option value="الهوية والمواطنة">الهوية والمواطنة</option>
+                <option value="اللغة الصينية">اللغة الصينية</option>
+                <option value="الفيزياء">الفيزياء</option>
+                <option value="الكيمياء">الكيمياء</option>
+                <option value="الأحياء">الأحياء</option>
+                <option value="العلوم البيئية">العلوم البيئية</option>
+              </select>
+            </div>
+            
             <button class="btn btn-primary btn-sm" onclick="loadReport()">🔍 عرض التقرير</button>
             <button class="btn btn-purple btn-sm" onclick="printReport()">🖨️ طباعة</button>
             <button class="btn btn-success btn-sm" onclick="exportReportToExcel()">📊 تصدير Excel</button>
@@ -2023,6 +2049,56 @@
       document.body.appendChild(a); a.click();
       document.body.removeChild(a); URL.revokeObjectURL(url);
       showToast('تم تصدير الملف بنجاح', 'success');
+    }
+
+    /***********************************************
+     * ⚡ فلترة التقرير حسب المادة
+     ***********************************************/
+    function filterReportBySubject() {
+      const selectedSubject = document.getElementById('reportSubjectFilter').value;
+      
+      // إذا لم يتم عرض تقرير بعد، نطلب من المستخدم عرضه أولاً
+      if (!state.reportData) {
+        showToast('يرجى عرض التقرير أولاً', 'warning');
+        return;
+      }
+
+      // إذا اختار "كل المواد"، نعيد رسم التقرير كاملاً
+      if (selectedSubject === 'all') {
+        if (state.reportType === 'weekly') renderWeeklyReport(state.reportData);
+        else renderMonthlyReport(state.reportData);
+        return;
+      }
+
+      // فلترة البيانات (تخصيص نسخة من البيانات)
+      const filteredBookings = state.reportData.bookings.filter(b => b.subject === selectedSubject);
+      
+      // إنشاء نسخة معدلة من البيانات للعرض فقط
+      const filteredData = JSON.parse(JSON.stringify(state.reportData));
+      filteredData.bookings = filteredBookings;
+      filteredData.totalBookings = filteredBookings.length;
+
+      // إعادة رسم التقرير بالبيانات المفلترة
+      if (state.reportType === 'weekly') {
+        // تحديث جدول الأسبوع
+        filteredData.byDay = {};
+        filteredData.days.forEach(d => { filteredData.byDay[d.date] = []; });
+        filteredBookings.forEach(b => {
+          if (filteredData.byDay[b.date]) filteredData.byDay[b.date].push(b);
+        });
+        renderWeeklyReport(filteredData);
+      } else {
+        // تحديث تقرير الشهر
+        filteredData.byGrade = filteredData.byGrade.filter(g => {
+          return filteredBookings.some(b => b.grade === g.name);
+        });
+        filteredData.topTeachers = filteredData.topTeachers.filter(t => {
+          return filteredBookings.some(b => b.teacher === t.name);
+        });
+        renderMonthlyReport(filteredData);
+      }
+      
+      showToast('تمت الفلترة حسب المادة: ' + selectedSubject, 'success');
     }
 
     ['bookingModal', 'cancelModal', 'successModal', 'cancelTeacherModal', 'whatsappModal'].forEach(id => {
