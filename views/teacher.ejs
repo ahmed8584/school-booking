@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>صفحة المعلم - حجز القاعة</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <header class="main-header">
+    <div class="header-content">
+      <h1>📚 حجز قاعة المصادر التعليمية</h1>
+      <div class="user-info">
+        <span>مرحباً، <%= user.username %></span>
+        <a href="/logout" class="btn-logout">خروج</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="welcome-card">
+      <h2>أهلاً بك في صفحة الحجز</h2>
+      <p>اختر الأسبوع، ثم اليوم والحصة التي تريد حجزها</p>
+    </div>
+
+    <div class="week-nav">
+      <button class="nav-btn" onclick="goToPreviousWeek()">← الأسبوع السابق</button>
+      <div class="week-info">
+        <span id="weekRange">جاري التحميل...</span>
+        <button class="today-btn" onclick="goToToday()">🏠 الأسبوع الحالي</button>
+      </div>
+      <button class="nav-btn" onclick="goToNextWeek()">الأسبوع القادم →</button>
+    </div>
+
+    <div id="daysContainer" class="days-container">
+      <p style="text-align:center; padding: 40px;">⏳ جاري التحميل...</p>
+    </div>
+  </main>
+
+  <!-- نافذة الحجز الأساسية -->
+  <div id="bookingModal" class="modal-overlay" style="display:none;">
+    <div class="modal-box">
+      <h2>📝 بيانات الحجز</h2>
+      <form id="bookingForm">
+        <input type="hidden" id="bookingDay">
+        <input type="hidden" id="bookingPeriod">
+        <input type="hidden" id="bookingDate">
+
+        <div class="form-group">
+          <label>اسم المعلم *</label>
+          <input type="text" id="teacherName" required>
+        </div>
+
+        <div class="form-group">
+          <label>الصف *</label>
+          <input type="text" id="grade" required>
+        </div>
+
+        <!-- ✅ هنا تم تحويل المادة إلى قائمة منسدلة -->
+        <div class="form-group">
+          <label>المادة *</label>
+          <select id="subject" required style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-family: inherit;">
+            <option value="" disabled selected>اختر المادة...</option>
+            <option value="رياضيات">رياضيات</option>
+            <option value="لغة عربية">لغة عربية</option>
+            <option value="علوم">علوم</option>
+            <option value="لغة إنجليزية">لغة إنجليزية</option>
+            <option value="حاسب آلي">حاسب آلي</option>
+            <option value="تربية إسلامية">تربية إسلامية</option>
+            <option value="اجتماعيات">اجتماعيات</option>
+            <option value="مهارات حياتية">مهارات حياتية</option>
+            <option value="فنون تشكيلية">فنون تشكيلية</option>
+            <option value="تربية رياضية">تربية رياضية</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>عنوان الدرس *</label>
+          <input type="text" id="lessonTitle" required>
+        </div>
+
+        <div class="form-group">
+          <label>الاحتياجات *</label>
+          <textarea id="needs" rows="3" required></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>الإيميل (اختياري - لإرسال تأكيد بالإيميل)</label>
+          <input type="email" id="email" placeholder="example@school.edu">
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" onclick="closeModal()">إلغاء</button>
+          <button type="submit" class="btn-primary">✅ تأكيد الحجز</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- نافذة خيار واتساب (بعد نجاح الحجز) -->
+  <div id="whatsappChoiceModal" class="modal-overlay" style="display:none;">
+    <div class="modal-box whatsapp-modal">
+      <h2>✅ تم الحجز بنجاح!</h2>
+      <p style="text-align:center; color:#718096; margin-bottom:25px;">
+        هل تريد إرسال تفاصيل الحجز عبر واتساب؟
+      </p>
+      <div class="modal-actions">
+        <button type="button" class="btn-cancel" onclick="closeWhatsappChoice()">❌ إلغاء</button>
+        <button type="button" class="btn-whatsapp" onclick="showPhoneInput()">📱 إرسال عبر واتساب</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- نافذة إدخال رقم الواتساب -->
+  <div id="whatsappPhoneModal" class="modal-overlay" style="display:none;">
+    <div class="modal-box whatsapp-modal">
+      <h2>📱 إرسال عبر واتساب</h2>
+      <p style="text-align:center; color:#718096; margin-bottom:20px;">
+        أدخل رقم الواتساب مع مفتاح الدولة
+      </p>
+      <div class="form-group">
+        <label>رقم الواتساب</label>
+        <input type="tel" id="whatsappNumber" placeholder="96891234567" autofocus>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-cancel" onclick="closeWhatsappPhone()">❌ إلغاء</button>
+        <button type="button" class="btn-whatsapp" onclick="sendToWhatsApp()">📤 إرسال</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" style="display:none;"></div>
+
+  <footer class="footer">
+    <p class="copyright-name">© 2026 أحمد اليعقوبي</p>
+    <p>جميع الحقوق محفوظة</p>
+  </footer>
+
+  <script src="/js/teacher.js"></script>
+</body>
+</html>

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>لوحة المسؤول - حجز القاعة</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <header class="main-header">
+    <div class="header-content">
+      <h1>🔧 لوحة تحكم المسؤول</h1>
+      <div class="user-info">
+        <span>مرحباً، <%= user.username %></span>
+        <a href="/logout" class="btn-logout">خروج</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- ✅ تم إضافة حقل البحث حسب المادة هنا بجانب فلتر الشهر -->
+    <div class="admin-controls" style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+      <select id="reportMonth" class="month-input">
+        <option value="">📅 اختر الشهر</option>
+      </select>
+
+      <!-- قائمة البحث عن المواد -->
+      <select id="searchSubject" class="month-input" onchange="filterBySubject()" style="padding: 10px; border-radius: 6px; border: 1px solid #ccc; font-family: inherit;">
+        <option value="all">🔍 كل المواد</option>
+        <option value="رياضيات">رياضيات</option>
+        <option value="لغة عربية">لغة عربية</option>
+        <option value="علوم">علوم</option>
+        <option value="لغة إنجليزية">لغة إنجليزية</option>
+        <option value="حاسب آلي">حاسب آلي</option>
+        <option value="تربية إسلامية">تربية إسلامية</option>
+        <option value="اجتماعيات">اجتماعيات</option>
+        <option value="مهارات حياتية">مهارات حياتية</option>
+        <option value="فنون تشكيلية">فنون تشكيلية</option>
+        <option value="تربية رياضية">تربية رياضية</option>
+      </select>
+
+      <button id="printBtn" class="btn-primary">🖨️ طباعة التقرير الشهري</button>
+    </div>
+
+    <div class="table-container">
+      <table class="bookings-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>التاريخ</th>
+            <th>اليوم</th>
+            <th>الحصة</th>
+            <th>المعلم</th>
+            <th>الصف</th>
+            <th>المادة</th>
+            <th>عنوان الدرس</th>
+            <th>الاحتياجات</th>
+            <th>إجراءات</th>
+          </tr>
+        </thead>
+        <tbody id="bookingsBody">
+          <tr><td colspan="10" style="text-align:center;">⏳ جاري التحميل...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <!-- حفظ الحقوق -->
+  <footer class="footer">
+    <p class="copyright-name">© 2026 أحمد اليعقوبي</p>
+    <p>جميع الحقوق محفوظة</p>
+  </footer>
+
+  <script src="/js/admin.js"></script>
+</body>
+</html>
