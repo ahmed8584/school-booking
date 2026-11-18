@@ -603,11 +603,35 @@
             </select>
           </div>
           <div class="form-group"><label>اسم المعلم</label><input type="text" id="formTeacher" required></div>
-          <div class="form-group"><label>الصف/الشعبة</label><input type="text" id="formGrade" placeholder="مثال: 8/1"></div>
           
-                  <!-- ✅ قائمة المواد المعدلة حسب الطلب -->
+          <!-- ✅ التعديل الجديد: الصف والشعبة -->
+          <div class="form-group" style="display: flex; gap: 10px;">
+            <div style="flex: 1;">
+              <label>الصف</label>
+              <select id="formGradeLevel" required>
+                <option value="">اختر...</option>
+                <option value="5">5</option><option value="6">6</option>
+                <option value="7">7</option><option value="8">8</option>
+                <option value="9">9</option><option value="10">10</option>
+                <option value="11">11</option><option value="12">12</option>
+              </select>
+            </div>
+            <div style="flex: 1;">
+              <label>الشعبة</label>
+              <select id="formGradeSection" required>
+                <option value="">اختر...</option>
+                <option value="1">1</option><option value="2">2</option>
+                <option value="3">3</option><option value="4">4</option>
+                <option value="5">5</option><option value="6">6</option>
+                <option value="7">7</option><option value="8">8</option>
+                <option value="9">9</option><option value="10">10</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- ✅ التعديل الجديد: المواد -->
           <div class="form-group"><label>المادة</label>
-            <select id="formSubject">
+            <select id="formSubject" required>
               <option value="">اختر المادة...</option>
               <option value="التربية الإسلامية">التربية الإسلامية</option>
               <option value="اللغة العربية">اللغة العربية</option>
@@ -1231,8 +1255,12 @@
         document.getElementById('formDate').value = dateStr;
         document.getElementById('formPeriod').value = period;
         document.getElementById('formTeacher').value = state.user.role === 'teacher' ? state.user.name : '';
-        document.getElementById('formGrade').value = '';
+        
+        // تصفير قوائم الصف والشعبة والمادة
+        document.getElementById('formGradeLevel').value = '';
+        document.getElementById('formGradeSection').value = '';
         document.getElementById('formSubject').value = '';
+        
         document.getElementById('formLesson').value = '';
         document.getElementById('formNeeds').value = '';
         toggleFormFieldsLock(false);
@@ -1257,7 +1285,12 @@
       document.getElementById('formDate').value = b.date;
       document.getElementById('formPeriod').value = b.period;
       document.getElementById('formTeacher').value = b.teacher || '';
-      document.getElementById('formGrade').value = b.grade || '';
+      
+      // تفكيك الصف والشعبة إذا كان موجوداً بصيغة "8/1"
+      const gradeParts = (b.grade || '').split('/');
+      document.getElementById('formGradeLevel').value = gradeParts[0] || '';
+      document.getElementById('formGradeSection').value = gradeParts[1] || '';
+      
       document.getElementById('formSubject').value = b.subject || '';
       document.getElementById('formLesson').value = b.lesson || '';
       document.getElementById('formNeeds').value = b.needs || '';
@@ -1277,7 +1310,12 @@
       document.getElementById('formDate').value = b.date;
       document.getElementById('formPeriod').value = b.period;
       document.getElementById('formTeacher').value = b.teacher || '';
-      document.getElementById('formGrade').value = b.grade || '';
+      
+      // تفكيك الصف والشعبة
+      const gradeParts = (b.grade || '').split('/');
+      document.getElementById('formGradeLevel').value = gradeParts[0] || '';
+      document.getElementById('formGradeSection').value = gradeParts[1] || '';
+      
       document.getElementById('formSubject').value = b.subject || '';
       document.getElementById('formLesson').value = b.lesson || '';
       document.getElementById('formNeeds').value = b.needs || '';
@@ -1302,16 +1340,25 @@
      ***********************************************/
     function submitBookingForm() {
       const id = document.getElementById('bookingId').value;
+      const gradeLevel = document.getElementById('formGradeLevel').value;
+      const gradeSection = document.getElementById('formGradeSection').value;
+      
+      // دمج الصف والشعبة (مثال: 8/1)
+      const combinedGrade = (gradeLevel && gradeSection) ? `${gradeLevel}/${gradeSection}` : '';
+      
       const data = {
         date: document.getElementById('formDate').value,
         period: Number(document.getElementById('formPeriod').value),
         teacher: document.getElementById('formTeacher').value.trim(),
-        grade: document.getElementById('formGrade').value.trim(),
+        grade: combinedGrade,
         subject: document.getElementById('formSubject').value.trim(),
         lesson: document.getElementById('formLesson').value.trim(),
         needs: document.getElementById('formNeeds').value.trim()
       };
+      
       if (!data.date || !data.teacher) { showModalAlert('يرجى إدخال التاريخ واسم المعلم', 'error'); return; }
+      if (!data.grade) { showModalAlert('يرجى اختيار الصف والشعبة', 'error'); return; }
+      
       hideModalAlert();
 
       if (!id) {
@@ -1341,7 +1388,6 @@
               if (idx !== -1) state.bookings[idx].id = res.bookingId;
               showBookingSuccess(data, res.bookingId);
               showToast('✅ تم الحفظ', 'success', 2000);
-              // ⚡ تأخير 4 ثوانٍ قبل المزامنة (لينظف الخادم كاشه)
               setTimeout(() => loadWeekFromServer(), 4000);
             } else {
               state.bookings = state.bookings.filter(x => x.id !== tempId);
@@ -1384,12 +1430,20 @@
     function submitTeacherUpdate() {
       const id = document.getElementById('bookingId').value;
       if (!id) return;
+      
+      const gradeLevel = document.getElementById('formGradeLevel').value;
+      const gradeSection = document.getElementById('formGradeSection').value;
+      const combinedGrade = (gradeLevel && gradeSection) ? `${gradeLevel}/${gradeSection}` : '';
+
       const updates = {
-        grade: document.getElementById('formGrade').value.trim(),
+        grade: combinedGrade,
         subject: document.getElementById('formSubject').value.trim(),
         lesson: document.getElementById('formLesson').value.trim(),
         needs: document.getElementById('formNeeds').value.trim()
       };
+      
+      if (!updates.grade) { showModalAlert('يرجى اختيار الصف والشعبة', 'error'); return; }
+      
       hideModalAlert();
       callAPI('teacherUpdateBooking', [id, state.user.name, updates])
         .then(res => {
