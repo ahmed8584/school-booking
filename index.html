@@ -1894,13 +1894,19 @@
       promise.then(res => {
         loading.classList.remove('show');
         if (!res.success) { showToast(res.message || 'فشل', 'error'); return; }
+        
+        // حفظ البيانات الأصلية
         state.reportData = res;
         state.reportMeta = state.reportType === 'weekly'
           ? { type: 'weekly', startDate: res.startDate }
           : { type: 'monthly', year: Number(document.getElementById('reportYear').value), month: Number(document.getElementById('reportMonth').value) };
+        
+        // عرض التقرير (سيتم عرض الكل في البداية)
         if (state.reportType === 'weekly') renderWeeklyReport(res);
         else renderMonthlyReport(res);
+        
         output.style.display = 'block';
+        
         // ✅ إضافة هذا السطر: إذا كان هناك مادة مختارة مسبقاً، قم بفلترتها فوراً
         const currentFilter = document.getElementById('reportSubjectFilter').value;
         if (currentFilter !== 'all') {
@@ -1910,7 +1916,7 @@
         loading.classList.remove('show');
         showToast('خطأ: ' + err.message, 'error');
       });
-    }}
+    }
 
     function renderReportHeader(title, periodText) {
       const schoolName = document.getElementById('appSubtitle').textContent || 'مدرسة أبو الدرداء للتعليم الأساسي للبنين ٥-١٢';
