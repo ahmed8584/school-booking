@@ -588,7 +588,10 @@
           <p>جارٍ تحميل السجل...</p>
         </div>
         <div class="admin-section" id="auditContent" style="display:none;">
-          <h3>📋 آخر 100 عملية</h3>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h3 style="margin: 0;">📋 آخر 100 عملية</h3>
+            <button class="btn btn-danger btn-sm" onclick="deleteAuditLog()">🗑️ مسح السجل بالكامل</button>
+          </div>
           <div style="overflow-x:auto;max-height:75vh;">
             <table class="data-table">
               <thead>
@@ -1822,6 +1825,30 @@
           document.getElementById('auditContent').style.display = 'block';
           document.getElementById('auditBody').innerHTML =
             '<tr><td colspan="6" style="text-align:center;color:var(--danger);padding:2rem;">خطأ: ' + escapeHtml(err.message) + '</td></tr>';
+        });
+    }
+    
+        // دالة مسح سجل التعديلات
+    function deleteAuditLog() {
+      if (!confirm('⚠️ هل أنت متأكد من مسح سجل التعديلات بالكامل؟\nلا يمكن التراجع عن هذه العملية!')) return;
+      if (!confirm('تأكيد نهائي: سيتم حذف جميع السجلات نهائياً.')) return;
+
+      showToast('⏳ جاري مسح السجل...', 'info', 2000);
+
+      // استدعاء دالة الحذف من Google Apps Script
+      callAPI('deleteAuditLog', [state.user.username || 'admin'])
+        .then(res => {
+          if (res.success) {
+            showToast('✅ تم مسح السجل بنجاح', 'success');
+            // تفريغ الجدول في الواجهة
+            document.getElementById('auditBody').innerHTML = 
+              '<tr><td colspan="6" style="text-align:center;color:var(--gray-500);padding:2rem;">لا توجد عمليات</td></tr>';
+          } else {
+            showToast('❌ فشل: ' + (res.message || 'حدث خطأ'), 'error');
+          }
+        })
+        .catch(err => {
+          showToast('⚠️ خطأ في الاتصال: ' + err.message, 'error');
         });
     }
 
