@@ -540,7 +540,7 @@
             </div>
           </div>
 
-          <!-- ✅ قسم البحث والأزرار - مرتب بشكل أفضل -->
+          <!-- ✅ قسم البحث والأزرار -->
           <div style="margin-top:1.5rem; padding-top:1rem; border-top: 1px dashed var(--gray-200);">
             <div style="margin-bottom:1rem; display:flex; align-items:center; gap:10px; background: var(--gray-50); padding: 10px; border-radius: 8px;">
               <label style="font-weight:700;color:var(--gray-700);white-space:nowrap;">🔍 بحث حسب المادة:</label>
@@ -638,10 +638,14 @@
               <label>الصف</label>
               <select id="formGradeLevel" required>
                 <option value="">اختر...</option>
-                <option value="5">5</option><option value="6">6</option>
-                <option value="7">7</option><option value="8">8</option>
-                <option value="9">9</option><option value="10">10</option>
-                <option value="11">11</option><option value="12">12</option>
+                <option value="5">الخامس</option>
+                <option value="6">السادس</option>
+                <option value="7">السابع</option>
+                <option value="8">الثامن</option>
+                <option value="9">التاسع</option>
+                <option value="10">العاشر</option>
+                <option value="11">الحادي عشر</option>
+                <option value="12">الثاني عشر</option>
               </select>
             </div>
             <div style="flex: 1;">
@@ -2065,35 +2069,67 @@
     }
 
     /***********************************************
-     * ⚡ فلترة التقرير حسب المادة
+     * ⚡ فلترة التقرير حسب المادة (تم التعديل لتشمل كل الجداول)
      ***********************************************/
     function filterReportBySubject() {
       const selectedSubject = document.getElementById('reportSubjectFilter').value;
       
-      // إذا لم يتم عرض تقرير بعد، نطلب من المستخدم عرضه أولاً
       if (!state.reportData) {
         showToast('يرجى عرض التقرير أولاً', 'warning');
         return;
       }
 
-      // إذا اختار "كل المواد"، نعيد رسم التقرير كاملاً
       if (selectedSubject === 'all') {
         if (state.reportType === 'weekly') renderWeeklyReport(state.reportData);
         else renderMonthlyReport(state.reportData);
         return;
       }
 
-      // فلترة البيانات (تخصيص نسخة من البيانات)
-      const filteredBookings = state.reportData.bookings.filter(b => b.subject === selectedSubject);
+      // جلب البيانات الأصلية
+      const originalBookings = state.reportData.bookings || [];
+      // تصفية البيانات حسب المادة المختارة
+      const filteredBookings = originalBookings.filter(b => b.subject === selectedSubject);
       
       // إنشاء نسخة معدلة من البيانات للعرض فقط
       const filteredData = JSON.parse(JSON.stringify(state.reportData));
       filteredData.bookings = filteredBookings;
       filteredData.totalBookings = filteredBookings.length;
 
+      // إعادة حساب الإحصائيات بناءً على البيانات المفلترة
+      const teacherCounts = {};
+      const subjectCounts = {};
+      const gradeCounts = {};
+      const periodCounts = {};
+
+      filteredBookings.forEach(b => {
+        // عدد حجوزات كل معلم
+        teacherCounts[b.teacher] = (teacherCounts[b.teacher] || 0) + 1;
+        // عدد حجوزات كل مادة
+        const subj = b.subject || 'غير محدد';
+        subjectCounts[subj] = (subjectCounts[subj] || 0) + 1;
+        // عدد حجوزات كل صف
+        const grd = b.grade || 'غير محدد';
+        gradeCounts[grd] = (gradeCounts[grd] || 0) + 1;
+        // توزيع الحصص
+        periodCounts[b.period] = (periodCounts[b.period] || 0) + 1;
+      });
+
+      // إعادة بناء مصفوفات الإحصائيات (المعلمين، المواد، الصفوف، الحصص)
+      filteredData.topTeachers = Object.keys(teacherCounts).map(name => ({ name: name, count: teacherCounts[name] })).sort((a,b) => b.count - a.count);
+      filteredData.topSubjects = Object.keys(subjectCounts).map(name => ({ name: name, count: subjectCounts[name] })).sort((a,b) => b.count - a.count);
+      filteredData.byGrade = Object.keys(gradeCounts).map(name => ({ name: name, count: gradeCounts[name] })).sort((a,b) => b.count - a.count);
+      filteredData.byPeriod = [];
+      for (let i = 1; i <= 8; i++) {
+        filteredData.byPeriod.push({ period: i, count: periodCounts[i] || 0 });
+      }
+      
+      // حساب عدد المعلمين الفريدين والمواد الفريدة المتبقية
+      filteredData.uniqueTeachers = filteredData.topTeachers.length;
+      filteredData.uniqueSubjects = filteredData.topSubjects.length;
+      filteredData.uniqueGrades = filteredData.byGrade.length;
+
       // إعادة رسم التقرير بالبيانات المفلترة
       if (state.reportType === 'weekly') {
-        // تحديث جدول الأسبوع
         filteredData.byDay = {};
         filteredData.days.forEach(d => { filteredData.byDay[d.date] = []; });
         filteredBookings.forEach(b => {
@@ -2101,13 +2137,6 @@
         });
         renderWeeklyReport(filteredData);
       } else {
-        // تحديث تقرير الشهر
-        filteredData.byGrade = filteredData.byGrade.filter(g => {
-          return filteredBookings.some(b => b.grade === g.name);
-        });
-        filteredData.topTeachers = filteredData.topTeachers.filter(t => {
-          return filteredBookings.some(b => b.teacher === t.name);
-        });
         renderMonthlyReport(filteredData);
       }
       
