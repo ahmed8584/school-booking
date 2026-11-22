@@ -588,10 +588,19 @@
           <p>جارٍ تحميل السجل...</p>
         </div>
         <div class="admin-section" id="auditContent" style="display:none;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+          <!-- ✅ أضفنا أزرار التحكم هنا -->
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 10px;">
             <h3 style="margin: 0;">📋 آخر 100 عملية</h3>
-            <button class="btn btn-danger btn-sm" onclick="deleteAuditLog()">🗑️ مسح السجل بالكامل</button>
+            <div style="display: flex; gap: 10px; align-items: center;">
+              <label style="font-weight: 700; font-size: 0.9rem; color: var(--gray-700);">تصفية حسب الشهر:</label>
+              <select id="auditMonthFilter" onchange="loadAuditLog()" style="padding: .5rem; border-radius: 8px; border: 1px solid var(--gray-200); font-family: inherit; background: var(--card-bg); color: var(--gray-900);">
+                <option value="">كل الشهور</option>
+                <!-- سيتم تعبئتها عبر الجافاسكريبت -->
+              </select>
+              <button class="btn btn-danger btn-sm" onclick="deleteAuditLog()">🗑️ مسح السجل</button>
+            </div>
           </div>
+
           <div style="overflow-x:auto;max-height:75vh;">
             <table class="data-table">
               <thead>
@@ -786,7 +795,7 @@
     /***********************************************
      * ⚙️ إعدادات الاتصال
      ***********************************************/
-    const API_URL = 'https://script.google.com/macros/s/AKfycbw8tN_0EV1SS9ekz73nibqoFsYdpPomz9WR2LifoscnGQX78KmT-m9lV3ZiC73E20Q/exec';
+    const API_URL = 'https://script.google.com/macros/s/AKfycbxibDyn4Fa7oLHclwOhVCY6K3sIDWwPc7RE2-YiNQR-JPbK8tficaiIlk8W2auCUzQXng/exec';
     const API_KEY = 'SCHOOL_BOOKING_SECRET_2026_XYZ';
 
     /***********************************************
@@ -1105,7 +1114,7 @@
       if (tab === 'schedule') loadWeek();
       else if (tab === 'dashboard') loadDashboard();
       else if (tab === 'reports') { initReportDefaults(); setReportType(state.reportType || 'weekly'); }
-      else if (tab === 'audit') loadAuditLog();
+      else if (tab === 'audit') { fillAuditMonths(); loadAuditLog(); }
     }
 
     function changeWeek(delta) {
@@ -1806,9 +1815,12 @@
       const cached = clientCacheGet(cacheKey);
       if (cached) { renderAuditLog(cached); return; }
 
+      const monthFilter = document.getElementById('auditMonthFilter').value;
+
       document.getElementById('auditLoading').classList.add('show');
       document.getElementById('auditContent').style.display = 'none';
-      callAPI('getAuditLog', [100])
+      
+      callAPI('getAuditLog', [100, monthFilter])
         .then(res => {
           document.getElementById('auditLoading').classList.remove('show');
           document.getElementById('auditContent').style.display = 'block';
@@ -1818,7 +1830,6 @@
             return;
           }
           renderAuditLog(res);
-          clientCachePut(cacheKey, res, 60);
         })
         .catch(err => {
           document.getElementById('auditLoading').classList.remove('show');
@@ -1828,19 +1839,16 @@
         });
     }
     
-        // دالة مسح سجل التعديلات
     function deleteAuditLog() {
       if (!confirm('⚠️ هل أنت متأكد من مسح سجل التعديلات بالكامل؟\nلا يمكن التراجع عن هذه العملية!')) return;
       if (!confirm('تأكيد نهائي: سيتم حذف جميع السجلات نهائياً.')) return;
 
       showToast('⏳ جاري مسح السجل...', 'info', 2000);
 
-      // استدعاء دالة الحذف من Google Apps Script
       callAPI('deleteAuditLog', [state.user.username || 'admin'])
         .then(res => {
           if (res.success) {
             showToast('✅ تم مسح السجل بنجاح', 'success');
-            // تفريغ الجدول في الواجهة
             document.getElementById('auditBody').innerHTML = 
               '<tr><td colspan="6" style="text-align:center;color:var(--gray-500);padding:2rem;">لا توجد عمليات</td></tr>';
           } else {
@@ -1869,6 +1877,7 @@
         else if (log.action === 'UPDATE_ADMIN') { bc = 'badge-update'; bt = '✏️ تعديل (مدير)'; }
         else if (log.action === 'ADMIN_CANCEL') { bc = 'badge-cancel'; bt = '🚫 إلغاء'; }
         else if (log.action === 'ADMIN_DELETE_WEEK') { bc = 'badge-delete'; bt = '🗑️ حذف أسبوع'; }
+        else if (log.action === 'DELETE_AUDIT_LOG') { bc = 'badge-delete'; bt = '🗑️ مسح السجل'; }
         const rt = log.actorRole === 'teacher' ? 'معلم' : log.actorRole === 'admin' ? 'مدير' : log.actorRole;
         html += '<tr><td style="white-space:nowrap;font-size:.8rem;">' + escapeHtml(log.timestamp) + '</td>' +
           '<td><span class="badge ' + bc + '">' + bt + '</span></td>' +
@@ -1878,6 +1887,26 @@
           '<td style="font-size:.8rem;line-height:1.5;">' + escapeHtml(log.details || '—') + '</td></tr>';
       });
       document.getElementById('auditBody').innerHTML = html;
+    }
+
+    function fillAuditMonths() {
+      const select = document.getElementById('auditMonthFilter');
+      if (!select) return;
+      
+      const now = new Date();
+      const year = now.getFullYear();
+      const monthNames = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
+      
+      let html = '<option value="">كل الشهور</option>';
+      for (let m = 0; m < 12; m++) {
+        const val = year + '-' + pad2(m + 1);
+        html += `<option value="${val}">${monthNames[m]} ${year}</option>`;
+      }
+      for (let m = 0; m < 12; m++) {
+        const val = (year - 1) + '-' + pad2(m + 1);
+        html += `<option value="${val}">${monthNames[m]} ${year - 1}</option>`;
+      }
+      select.innerHTML = html;
     }
 
     function setReportType(type) {
@@ -2237,6 +2266,7 @@
             initReportDefaults();
             setReportType(state.reportType || 'weekly');
           } else if (state.currentTab === 'audit') {
+            fillAuditMonths();
             loadAuditLog();
           }
         }, 300);
