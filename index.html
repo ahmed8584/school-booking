@@ -1761,33 +1761,43 @@
         });
     }
 
-    function renderDashboard(data) {
+        function renderDashboard(data) {
       document.getElementById('dashContent').style.display = 'block';
-      const s = data.stats;
+      const s = data.stats || {};
+      
+      // ✅ حماية من الأخطاء إذا كانت البيانات غير موجودة
+      const topTeachers = s.topTeachers || data.topTeachers || [];
+      const topSubjects = s.topSubjects || data.topSubjects || [];
+      const todayList = data.todayList || [];
+
       document.getElementById('statsGrid').innerHTML =
-        '<div class="stat-card"><div class="stat-label">إجمالي الحجوزات</div><div class="stat-value">' + s.totalBookings + '</div></div>' +
-        '<div class="stat-card green"><div class="stat-label">حجوزات اليوم</div><div class="stat-value">' + s.todayBookings + '</div></div>' +
-        '<div class="stat-card orange"><div class="stat-label">حجوزات هذا الأسبوع</div><div class="stat-value">' + s.thisWeekBookings + '</div></div>' +
-        '<div class="stat-card purple"><div class="stat-label">عدد المعلمين</div><div class="stat-value">' + s.uniqueTeachers + '</div></div>' +
-        '<div class="stat-card"><div class="stat-label">عدد المواد</div><div class="stat-value">' + s.uniqueSubjects + '</div></div>';
+        '<div class="stat-card"><div class="stat-label">إجمالي الحجوزات</div><div class="stat-value">' + (s.totalBookings || 0) + '</div></div>' +
+        '<div class="stat-card green"><div class="stat-label">حجوزات اليوم</div><div class="stat-value">' + (s.todayBookings || 0) + '</div></div>' +
+        '<div class="stat-card orange"><div class="stat-label">حجوزات هذا الأسبوع</div><div class="stat-value">' + (s.thisWeekBookings || 0) + '</div></div>' +
+        '<div class="stat-card purple"><div class="stat-label">عدد المعلمين</div><div class="stat-value">' + (s.uniqueTeachers || 0) + '</div></div>' +
+        '<div class="stat-card"><div class="stat-label">عدد المواد</div><div class="stat-value">' + (s.uniqueSubjects || 0) + '</div></div>';
+        
       document.getElementById('todayDate').textContent = '— ' + formatArabicDate(data.today);
       const todayTable = document.getElementById('todayTable');
-      if (data.todayList.length === 0) {
+      
+      if (todayList.length === 0) {
         todayTable.innerHTML = '<div class="empty-state"><div class="icon">📭</div>لا توجد حجوزات اليوم</div>';
       } else {
         let html = '<div style="overflow-x:auto;"><table class="data-table"><thead><tr><th>الحصة</th><th>المعلم</th><th>الصف</th><th>المادة</th><th>الدرس</th><th>الاحتياجات</th></tr></thead><tbody>';
-        data.todayList.forEach(b => {
+        todayList.forEach(b => {
           html += '<tr><td><span class="badge badge-period">ح' + b.period + '</span></td><td><strong>' + escapeHtml(b.teacher) + '</strong></td><td>' + escapeHtml(b.grade || '—') + '</td><td>' + escapeHtml(b.subject || '—') + '</td><td>' + escapeHtml(b.lesson || '—') + '</td><td style="font-size:.8rem;color:var(--gray-500);">' + escapeHtml(b.needs || '—') + '</td></tr>';
         });
         html += '</tbody></table></div>';
         todayTable.innerHTML = html;
       }
-      const topTeachers = document.getElementById('topTeachers');
-      topTeachers.innerHTML = s.topTeachers.length === 0 ? '<div class="empty-state">لا توجد بيانات</div>' :
-        s.topTeachers.map(t => '<div class="top-item"><span class="name">' + escapeHtml(t.name) + '</span><span class="count">' + t.count + ' حجز</span></div>').join('');
-      const topSubjects = document.getElementById('topSubjects');
-      topSubjects.innerHTML = s.topSubjects.length === 0 ? '<div class="empty-state">لا توجد بيانات</div>' :
-        s.topSubjects.map(t => '<div class="top-item"><span class="name">' + escapeHtml(t.name) + '</span><span class="count">' + t.count + ' حجز</span></div>').join('');
+      
+      const topTeachersEl = document.getElementById('topTeachers');
+      topTeachersEl.innerHTML = topTeachers.length === 0 ? '<div class="empty-state">لا توجد بيانات</div>' :
+        topTeachers.map(t => '<div class="top-item"><span class="name">' + escapeHtml(t.name) + '</span><span class="count">' + t.count + ' حجز</span></div>').join('');
+        
+      const topSubjectsEl = document.getElementById('topSubjects');
+      topSubjectsEl.innerHTML = topSubjects.length === 0 ? '<div class="empty-state">لا توجد بيانات</div>' :
+        topSubjects.map(t => '<div class="top-item"><span class="name">' + escapeHtml(t.name) + '</span><span class="count">' + t.count + ' حجز</span></div>').join('');
     }
 
     function adminDeleteWeekPrompt() {
