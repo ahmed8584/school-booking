@@ -1860,7 +1860,7 @@
         });
     }
 
-    function renderAuditLog(res) {
+        function renderAuditLog(res) {
       document.getElementById('auditContent').style.display = 'block';
       const logs = res.logs || [];
       if (logs.length === 0) {
@@ -1878,8 +1878,15 @@
         else if (log.action === 'ADMIN_CANCEL') { bc = 'badge-cancel'; bt = '🚫 إلغاء'; }
         else if (log.action === 'ADMIN_DELETE_WEEK') { bc = 'badge-delete'; bt = '🗑️ حذف أسبوع'; }
         else if (log.action === 'DELETE_AUDIT_LOG') { bc = 'badge-delete'; bt = '🗑️ مسح السجل'; }
+        
+        // تنسيق الوقت ليكون مقروءاً (إزالة حرف T و Z والكسور العشرية)
+        let formattedTime = log.timestamp;
+        if (formattedTime) {
+            formattedTime = formattedTime.replace('T', ' ').replace('Z', '').split('.')[0];
+        }
+        
         const rt = log.actorRole === 'teacher' ? 'معلم' : log.actorRole === 'admin' ? 'مدير' : log.actorRole;
-        html += '<tr><td style="white-space:nowrap;font-size:.8rem;">' + escapeHtml(log.timestamp) + '</td>' +
+        html += '<tr><td style="white-space:nowrap;font-size:.8rem;">' + escapeHtml(formattedTime) + '</td>' +
           '<td><span class="badge ' + bc + '">' + bt + '</span></td>' +
           '<td>' + escapeHtml(log.actor) + '</td>' +
           '<td>' + escapeHtml(rt) + '</td>' +
