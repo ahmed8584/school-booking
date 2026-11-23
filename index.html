@@ -1885,7 +1885,7 @@
         });
     }
 
-        function renderAuditLog(res) {
+            function renderAuditLog(res) {
       document.getElementById('auditContent').style.display = 'block';
       const logs = res.logs || [];
       if (logs.length === 0) {
@@ -1904,10 +1904,23 @@
         else if (log.action === 'ADMIN_DELETE_WEEK') { bc = 'badge-delete'; bt = '🗑️ حذف أسبوع'; }
         else if (log.action === 'DELETE_AUDIT_LOG') { bc = 'badge-delete'; bt = '🗑️ مسح السجل'; }
         
-        // تنسيق الوقت ليكون مقروءاً (إزالة حرف T و Z والكسور العشرية)
-        let formattedTime = log.timestamp;
-        if (formattedTime) {
-            formattedTime = formattedTime.replace('T', ' ').replace('Z', '').split('.')[0];
+        // ✅ تنسيق التاريخ والوقت
+        let formattedTime = '—';
+        if (log.timestamp) {
+            const d = new Date(log.timestamp);
+            if (!isNaN(d.getTime())) {
+                // تنسيق YYYY-MM-DD HH:MM
+                const pad = (n) => n < 10 ? '0' + n : n;
+                formattedTime = d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()) + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+            } else {
+                formattedTime = log.timestamp;
+            }
+        }
+
+        // ✅ تنسيق تاريخ الحجز (إذا كان موجوداً)
+        let formattedDate = '—';
+        if (log.date) {
+             formattedDate = formatArabicDate(log.date) + (log.period ? ' — ح' + log.period : '');
         }
         
         const rt = log.actorRole === 'teacher' ? 'معلم' : log.actorRole === 'admin' ? 'مدير' : log.actorRole;
@@ -1915,7 +1928,7 @@
           '<td><span class="badge ' + bc + '">' + bt + '</span></td>' +
           '<td>' + escapeHtml(log.actor) + '</td>' +
           '<td>' + escapeHtml(rt) + '</td>' +
-          '<td style="white-space:nowrap;">' + (log.date ? formatArabicDate(log.date) + (log.period ? ' — ح' + log.period : '') : '—') + '</td>' +
+          '<td style="white-space:nowrap;">' + formattedDate + '</td>' +
           '<td style="font-size:.8rem;line-height:1.5;">' + escapeHtml(log.details || '—') + '</td></tr>';
       });
       document.getElementById('auditBody').innerHTML = html;
