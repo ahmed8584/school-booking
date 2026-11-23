@@ -1820,17 +1820,12 @@
         .catch(err => showToast('خطأ: ' + err.message, 'error'));
     }
 
-    function loadAuditLog() {
-      const cacheKey = 'audit';
-      const cached = clientCacheGet(cacheKey);
-      if (cached) { renderAuditLog(cached); return; }
-
-      const monthFilter = document.getElementById('auditMonthFilter').value;
-
+        function loadAuditLog() {
       document.getElementById('auditLoading').classList.add('show');
       document.getElementById('auditContent').style.display = 'none';
       
-      callAPI('getAuditLog', [100, monthFilter])
+      // نطلب 1000 سجل (أو أي رقم كبير) لجلب كل البيانات
+      callAPI('getAuditLog', [1000, ''])
         .then(res => {
           document.getElementById('auditLoading').classList.remove('show');
           document.getElementById('auditContent').style.display = 'block';
@@ -1839,7 +1834,27 @@
               '<tr><td colspan="6" style="text-align:center;color:var(--danger);padding:2rem;">' + escapeHtml(res.message || 'فشل') + '</td></tr>';
             return;
           }
-          renderAuditLog(res);
+          
+          // ✅ الفلترة تتم هنا في المتصفح
+          const monthFilter = document.getElementById('auditMonthFilter').value;
+          let logs = res.logs || [];
+          
+          if (monthFilter) {
+            logs = logs.filter(log => {
+               // تحويل التاريخ إلى نص للبحث
+               let dateStr = String(log.timestamp);
+               // إذا كان التاريخ بصيغة 2026-11-23T...
+               if (dateStr.includes('T')) {
+                   dateStr = dateStr.split('T')[0]; // نأخذ الجزء الأول فقط (سنة-شهر-يوم)
+               }
+               return dateStr.includes(monthFilter);
+            });
+          }
+          
+          // ترتيب السجلات
+          logs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+          
+          renderAuditLog({ success: true, logs: logs });
         })
         .catch(err => {
           document.getElementById('auditLoading').classList.remove('show');
